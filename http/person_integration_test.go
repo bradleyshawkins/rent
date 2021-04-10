@@ -14,9 +14,9 @@ import (
 
 func TestRegisterPerson(t *testing.T) {
 	person := h.Person{
-		FirstName:     "Bradley",
-		MiddleInitial: "S",
-		LastName:      "Hawkins",
+		FirstName:    "Bradley",
+		LastName:     "Hawkins",
+		EmailAddress: "bradleyshawkins@gmail.com",
 	}
 
 	personID, err := insertPerson(person)

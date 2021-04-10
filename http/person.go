@@ -15,10 +15,10 @@ import (
 const personID = "personID"
 
 type Person struct {
-	ID            string `json:"id"`
-	FirstName     string `json:"firstName"`
-	MiddleInitial string `json:"middleInitial"`
-	LastName      string `json:"lastName"`
+	ID           string `json:"id"`
+	FirstName    string `json:"firstName"`
+	LastName     string `json:"lastName"`
+	EmailAddress string `json:"emailAddress"`
 }
 
 type RegisterResponse struct {
@@ -35,9 +35,9 @@ func (r *Router) Register(w http.ResponseWriter, req *http.Request) {
 	}
 
 	p := &rent.Person{
-		FirstName:     person.FirstName,
-		MiddleInitial: person.MiddleInitial,
-		LastName:      person.LastName,
+		FirstName:    person.FirstName,
+		LastName:     person.LastName,
+		EmailAddress: person.EmailAddress,
 	}
 
 	id, err := r.personService.Register(p)
@@ -83,10 +83,10 @@ func (r *Router) GetPerson(w http.ResponseWriter, req *http.Request) {
 	}
 
 	respTenant := Person{
-		ID:            p.ID.String(),
-		FirstName:     p.FirstName,
-		MiddleInitial: p.MiddleInitial,
-		LastName:      p.LastName,
+		ID:           p.ID.String(),
+		FirstName:    p.FirstName,
+		LastName:     p.LastName,
+		EmailAddress: p.EmailAddress,
 	}
 
 	err = json.NewEncoder(w).Encode(respTenant)
@@ -121,9 +121,10 @@ func (r *Router) UpdatePerson(w http.ResponseWriter, req *http.Request) {
 	}
 
 	p := &rent.Person{
-		ID:        id,
-		FirstName: person.FirstName,
-		LastName:  person.LastName,
+		ID:           id,
+		FirstName:    person.FirstName,
+		LastName:     person.LastName,
+		EmailAddress: person.EmailAddress,
 	}
 
 	err = r.personService.UpdatePerson(p)

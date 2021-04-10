@@ -26,7 +26,7 @@ func (m *MySQL) RegisterPerson(p *rent.Person) error {
 }
 
 func (m *MySQL) insertPerson(tx *sqlx.Tx, p *rent.Person) error {
-	_, err := tx.NamedExec("INSERT INTO person(id, first_name, middle_initial, last_name) VALUES (:id, :first_name, :middle_initial, :last_name)", p)
+	_, err := tx.NamedExec("INSERT INTO person(id, first_name, last_name, email_address) VALUES (:id, :first_name, :last_name, :email_address)", p)
 	if err != nil {
 		return fmt.Errorf("unable to insert person into database. Error: %v", err)
 	}
