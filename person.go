@@ -8,5 +8,4 @@ type Person struct {
 	MiddleInitial string    `db:"middle_initial"`
 	LastName      string    `db:"last_name"`
 	EmailAddress  string    `db:"email_address"`
-	Address       Address
 }
