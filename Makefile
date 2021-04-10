@@ -3,6 +3,9 @@ deps.up:
 deps.down:
 	docker-compose down -v
 
+test.integration:
+	./dev/integration-tests/integration-tests.sh
+
 build.linux:
 	./dev/build.sh
 build.mac:
