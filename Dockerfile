@@ -1,12 +1,20 @@
 FROM golang:1.16.3 AS build
-ENV GOOS=linux
-ADD . /src
-RUN cd /src && go build -o rent
+ADD . /src/
+WORKDIR /src/cmd/rent
+RUN GOOS=linux GOARCH=amd64 go build -o rent
 
 
 
 FROM alpine
+RUN apk add --no-cache \
+        perl \
+        wget \
+        openssl \
+        ca-certificates \
+        libc6-compat \
+        libstdc++
+
 WORKDIR /app
-ADD mysql/schema /app
-COPY --from=build /src/rent /app/
+ADD mysql/schema /app/schema
+COPY --from=build /src/cmd/rent/rent /app/
 ENTRYPOINT ./rent

@@ -11,13 +11,15 @@ build.linux:
 build.mac:
 	GOOS=darwin ./dev/build.sh
 
-container.build: build.linux
-	docker build . -t rent
-container.run: container.build
+container.build:
+	docker build . -t rent:latest --no-cache
+container.run: deps.up container.build
 	docker run --env-file=./dev/integration-tests/config.env \
           --network=rent_network \
           --name=rent \
-          -p 8080:8080 \
           --rm \
+          -p 8080:8080 \
           -d \
-          rent
+          rent:latest
+container.stop:
+	docker rm -f rent
