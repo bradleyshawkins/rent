@@ -69,7 +69,7 @@ func SetupRouter(p personService) *Router {
 
 func (r *Router) registerEndpoints() {
 
-	r.router.Route("/Person", func(router chi.Router) {
+	r.router.Route("/person", func(router chi.Router) {
 		router.Get("/{personID}", r.GetPerson)
 		router.Put("/{personID}", r.UpdatePerson)
 		router.Delete("/{personID}", r.DeletePerson)

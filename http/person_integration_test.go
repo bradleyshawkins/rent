@@ -33,12 +33,12 @@ func TestRegisterPerson(t *testing.T) {
 		t.Errorf("Unexpected First Name. Expected: %v, Got: %v", person.FirstName, insertedPerson.FirstName)
 	}
 
-	if person.MiddleInitial != insertedPerson.MiddleInitial {
-		t.Errorf("Unexpected Middle Initial. Expected: %v, Got: %v", person.MiddleInitial, insertedPerson.MiddleInitial)
-	}
-
 	if person.LastName != insertedPerson.LastName {
 		t.Errorf("Unexpected Last Name. Expected: %v, Got: %v", person.LastName, insertedPerson.LastName)
+	}
+
+	if person.EmailAddress != insertedPerson.EmailAddress {
+		t.Errorf("Unexpected email address. Expected: %v, Got: %v", person.EmailAddress, insertedPerson.EmailAddress)
 	}
 }
 

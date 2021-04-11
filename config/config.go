@@ -16,6 +16,7 @@ func ParseConfig() (*Config, error) {
 	log.Println("Parsing config")
 	var c Config
 	err := envconfig.Process("", &c)
+	log.Printf("%+v\n", c)
 	if err != nil {
 		return nil, fmt.Errorf("unable to process config. Error:%v", err)
 	}

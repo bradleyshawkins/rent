@@ -82,6 +82,11 @@ func (r *Router) GetPerson(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	if p == nil {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+
 	respTenant := Person{
 		ID:           p.ID.String(),
 		FirstName:    p.FirstName,

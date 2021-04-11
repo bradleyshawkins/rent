@@ -1,6 +1,7 @@
 package mysql
 
 import (
+	"database/sql"
 	"fmt"
 
 	uuid "github.com/satori/go.uuid"
@@ -39,7 +40,10 @@ func (m *MySQL) UpdatePerson(t *rent.Person) error {
 
 func (m *MySQL) GetPerson(id uuid.UUID) (*rent.Person, error) {
 	var person rent.Person
-	err := m.db.Get(&person, `SELECT * FROM person WHERE id=?`, id)
+	err := m.db.Get(&person, `SELECT id, first_name, last_name, email_address FROM person WHERE id=?`, id)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
 	if err != nil {
 		return nil, fmt.Errorf("unable to get person. Error: %v", err)
 	}
