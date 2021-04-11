@@ -2,6 +2,7 @@ package person
 
 import (
 	"fmt"
+	"log"
 
 	uuid "github.com/satori/go.uuid"
 
@@ -18,16 +19,27 @@ func (p *Service) Register(person *rent.Person) (uuid.UUID, error) {
 }
 
 func (p *Service) GetPerson(id uuid.UUID) (*rent.Person, error) {
+	log.Println("Getting person", id)
 	person, err := p.personDatastore.GetPerson(id)
 	if err != nil {
 		return nil, fmt.Errorf("unable to get person. Error: %v", err)
 	}
+
+	log.Printf("Person: %+v\n", person)
 	return person, nil
 }
 
 func (p *Service) UpdatePerson(person *rent.Person) error {
+	err := p.personDatastore.UpdatePerson(person)
+	if err != nil {
+		return fmt.Errorf("unable to update person. Error: %v", err)
+	}
 	return nil
 }
 func (p *Service) DeletePerson(id uuid.UUID) error {
+	err := p.personDatastore.DeletePerson(id)
+	if err != nil {
+		return fmt.Errorf("unable to delete person. Error: %v", err)
+	}
 	return nil
 }

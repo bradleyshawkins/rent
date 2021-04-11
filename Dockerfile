@@ -15,6 +15,8 @@ RUN apk add --no-cache \
         libstdc++
 
 WORKDIR /app
+EXPOSE 8080
 ADD mysql/schema /app/schema
 COPY --from=build /src/cmd/rent/rent /app/
+HEALTHCHECK CMD wget http://localhost:8080/health || exit 1
 ENTRYPOINT ./rent

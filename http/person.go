@@ -61,6 +61,7 @@ func (r *Router) Register(w http.ResponseWriter, req *http.Request) {
 }
 
 func (r *Router) GetPerson(w http.ResponseWriter, req *http.Request) {
+	log.Println("Starting get person request")
 	pID := chi.URLParam(req, personID)
 	if pID == "" {
 		log.Println("personID was not provided")
@@ -93,6 +94,8 @@ func (r *Router) GetPerson(w http.ResponseWriter, req *http.Request) {
 		LastName:     p.LastName,
 		EmailAddress: p.EmailAddress,
 	}
+
+	fmt.Printf("%+v\n", respTenant)
 
 	err = json.NewEncoder(w).Encode(respTenant)
 	if err != nil {

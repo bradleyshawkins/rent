@@ -69,6 +69,8 @@ func SetupRouter(p personService) *Router {
 
 func (r *Router) registerEndpoints() {
 
+	r.router.Get("/health", r.Health)
+
 	r.router.Route("/person", func(router chi.Router) {
 		router.Get("/{personID}", r.GetPerson)
 		router.Put("/{personID}", r.UpdatePerson)

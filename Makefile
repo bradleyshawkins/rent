@@ -5,21 +5,13 @@ deps.down:
 
 test.integration:
 	./dev/integration-tests/integration-tests.sh
+test.unit:
+	go test -tags=unit ./...
 
-build.linux:
-	./dev/build.sh
-build.mac:
-	GOOS=darwin ./dev/build.sh
-
-container.build:
-	docker build . -t rent:latest --no-cache
-container.run: deps.up container.build
-	docker run --env-file=./dev/integration-tests/config.env \
-          --network=rent_network \
-          --name=rent \
-          --rm \
-          -p 8080:8080 \
-          -d \
-          rent:latest
-container.stop:
-	docker rm -f rent
+service.container.build:
+	docker build . -t rent:latest
+service.container.run: service.container.build
+	docker-compose -f docker-compose.yaml -f docker-compose.rent.yaml up -d
+service.container.stop:
+	docker-compose -f docker-compose.yaml -f docker-compose.rent.yaml down -v
+service.test.integration: service.container.run test.integration service.container.stop
