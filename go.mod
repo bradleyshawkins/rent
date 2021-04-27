@@ -4,9 +4,7 @@ go 1.15
 
 require (
 	github.com/go-chi/chi v1.5.4
-	github.com/go-sql-driver/mysql v1.6.0
 	github.com/jackc/pgconn v1.8.1
-	github.com/jackc/pgx v3.6.2+incompatible // indirect
 	github.com/jackc/pgx/v4 v4.11.0
 	github.com/jmoiron/sqlx v1.3.3
 	github.com/kelseyhightower/envconfig v1.4.0

@@ -44,7 +44,7 @@ func (r *Router) Register(w http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		log.Println(fmt.Errorf("unable to update Person. PersonID: %s Error: %v", p.ID, err))
 		if isDuplicate(err) {
-			NewError(http.StatusConflict, "email address already exists")
+			NewError(http.StatusConflict, "email address already exists").WriteError(w)
 			return
 		}
 		NewError(http.StatusInternalServerError, "unable to update Person").WriteError(w)
