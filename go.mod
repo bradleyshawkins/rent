@@ -1,11 +1,13 @@
 module github.com/bradleyshawkins/rent
 
+// +heroku goVersion go1.15
 go 1.15
 
 require (
 	github.com/go-chi/chi v1.5.4
 	github.com/jackc/pgconn v1.8.1
 	github.com/jackc/pgx/v4 v4.11.0
+	github.com/jackc/pgtype
 	github.com/jmoiron/sqlx v1.3.3
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/pkg/errors v0.9.1 // indirect
