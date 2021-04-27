@@ -1,16 +1,20 @@
 package main
 
 import (
+	"fmt"
 	"log"
+	"os"
+
+	"github.com/bradleyshawkins/rent/config"
 )
 
 func main() {
 	log.Println("Starting rent service")
-	//c, err := config.ParseConfig()
-	//if err != nil {
-	//	log.Println(fmt.Errorf("unable to initialize config. Error: %v", err))
-	//	os.Exit(0)
-	//}
+	_, err := config.ParseConfig()
+	if err != nil {
+		log.Println(fmt.Errorf("unable to initialize config. Error: %v", err))
+		os.Exit(0)
+	}
 	//
 	//m, err := postgres.New(c.ConnectionString, c.MigrationPath)
 	//if err != nil {
