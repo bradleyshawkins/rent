@@ -47,7 +47,7 @@ func (m *Postgres) UpdatePerson(t *rent.Person) error {
 
 func (m *Postgres) GetPerson(id uuid.UUID) (*rent.Person, error) {
 	var person rent.Person
-	err := m.db.Get(&person, `SELECT id, first_name, last_name, email_address FROM person WHERE id=?`, id)
+	err := m.db.Get(&person, `SELECT id, first_name, last_name, email_address FROM person WHERE id=$1`, id)
 	if err == sql.ErrNoRows {
 		return nil, nil
 	}
@@ -58,7 +58,7 @@ func (m *Postgres) GetPerson(id uuid.UUID) (*rent.Person, error) {
 }
 
 func (m *Postgres) DeletePerson(id uuid.UUID) error {
-	_, err := m.db.Exec(`DELETE FROM person WHERE id = ?`, id)
+	_, err := m.db.Exec(`DELETE FROM person WHERE id = $1`, id)
 	if err != nil {
 		return fmt.Errorf("unable to delete person from database. Error: %w", err)
 	}
