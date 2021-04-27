@@ -8,8 +8,8 @@ import (
 )
 
 type Config struct {
-	ConnectionString string `envconfig:"DB_CONNECTIONSTRING" default:"root:password@tcp(localhost:3306)/rent"`
-	MigrationPath    string `envconfig:"DB_MIGRATION_PATH" default:"./mysql/schema"`
+	ConnectionString string `envconfig:"DB_CONNECTIONSTRING" default:"postgresql://postgres:password@localhost:5432/rent"`
+	MigrationPath    string `envconfig:"DB_MIGRATION_PATH" default:"./postgres/schema"`
 }
 
 func ParseConfig() (*Config, error) {

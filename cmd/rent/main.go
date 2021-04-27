@@ -6,13 +6,13 @@ import (
 	"log"
 	"os"
 
+	"github.com/bradleyshawkins/rent/postgres"
+
 	"github.com/bradleyshawkins/rent/config"
 
 	"github.com/bradleyshawkins/rent/person"
 
 	"github.com/bradleyshawkins/rent/http"
-
-	"github.com/bradleyshawkins/rent/mysql"
 )
 
 func main() {
@@ -23,7 +23,7 @@ func main() {
 		os.Exit(0)
 	}
 
-	m, err := mysql.New(c.ConnectionString, c.MigrationPath)
+	m, err := postgres.New(c.ConnectionString, c.MigrationPath)
 	if err != nil {
 		log.Printf("unable to get database connection. Error: %v\n", err)
 		os.Exit(1)

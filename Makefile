@@ -11,7 +11,7 @@ test.unit:
 service.container.build:
 	docker build . -t rent:latest
 service.container.run: service.container.build
-	docker-compose -f docker-compose.yaml -f docker-compose.rent.yaml up -d
+	docker-compose -f ./dev/integration-tests/docker-compose.yaml up -d
 service.container.stop:
-	docker-compose -f docker-compose.yaml -f docker-compose.rent.yaml down -v
-service.test.integration: service.container.run test.integration service.container.stop
+	docker-compose -f ./dev/integration-tests/docker-compose.yaml down -v
+service.test.integration: service.container.run test.integration

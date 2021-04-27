@@ -8,7 +8,9 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
+	"os"
 	"testing"
 
 	uuid "github.com/satori/go.uuid"
@@ -113,7 +115,37 @@ func TestCreateGetUpdateDeletePerson(t *testing.T) {
 	if !wasDeleted {
 		t.Errorf("Person was not deleted")
 	}
+}
 
+func TestRegisterSameEmailAddressFails(t *testing.T) {
+	initialPerson := &h.Person{
+		FirstName:    "First",
+		LastName:     "Last",
+		EmailAddress: "test.test@test.com",
+	}
+
+	_, err := insertPerson(initialPerson)
+	if err != nil {
+		t.Fatalf("unable to insert person. Error: %v", err)
+	}
+
+	secondPerson := &h.Person{
+		FirstName:    "Test",
+		LastName:     "User",
+		EmailAddress: "test.test@test.com",
+	}
+
+	resp, err := doRequest(http.MethodPost, "http://localhost:8080/register", secondPerson)
+	if err != nil {
+		t.Fatalf("Unexecpted error. Error: %v", err)
+	}
+
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusConflict {
+		b, _ := ioutil.ReadAll(resp.Body)
+		t.Errorf("Unexpected status code. Expected: %v, Got: %v Message: %v", http.StatusConflict, resp.StatusCode, string(b))
+	}
 }
 
 func insertPerson(p *h.Person) (string, error) {
@@ -214,6 +246,15 @@ func doRequest(method string, u string, body interface{}) (*http.Response, error
 
 		resp, err := http.DefaultClient.Do(req)
 		if err != nil {
+			e := errors.Unwrap(errors.Unwrap(err))
+			var osErr *os.SyscallError
+			if errors.As(e, &osErr) {
+				//if osErr.Syscall == "connect" {
+				//	log.Println("Unable to connect to server. Waiting 3 seconds")
+				//	//time.Sleep(3 * time.Second)
+				//	continue
+				//}
+			}
 			return nil, fmt.Errorf("unable to make request. Error: %v", err)
 		}
 
