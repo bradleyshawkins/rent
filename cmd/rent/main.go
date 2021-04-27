@@ -1,10 +1,12 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
 
+	"github.com/bradleyshawkins/rent/http"
 	"github.com/bradleyshawkins/rent/person"
 	"github.com/bradleyshawkins/rent/postgres"
 
@@ -24,14 +26,14 @@ func main() {
 		os.Exit(1)
 	}
 
-	_ = person.NewPersonService(m)
+	personService := person.NewPersonService(m)
 
-	//router := http.SetupRouter(personService)
-	//
-	//if err := router.Start(context.Background(), ":8080"); err != nil {
-	//	log.Println("unable to start router. Error:", err)
-	//	os.Exit(2)
-	//}
+	router := http.SetupRouter(personService)
+
+	if err := router.Start(context.Background(), ":8080"); err != nil {
+		log.Println("unable to start router. Error:", err)
+		os.Exit(2)
+	}
 
 	log.Println("Ready for traffic")
 }
