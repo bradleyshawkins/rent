@@ -10,6 +10,7 @@ import (
 type Config struct {
 	ConnectionString string `envconfig:"DATABASE_URL" default:"postgresql://postgres:password@localhost:5432/rent"`
 	MigrationPath    string `envconfig:"MIGRATION_PATH" default:"./postgres/schema"`
+	Port             string `envconfig:"PORT" default:"8080"`
 }
 
 func ParseConfig() (*Config, error) {

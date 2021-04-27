@@ -30,7 +30,7 @@ func main() {
 
 	router := http.SetupRouter(personService)
 
-	if err := router.Start(context.Background(), ":8080"); err != nil {
+	if err := router.Start(context.Background(), c.Port); err != nil {
 		log.Println("unable to start router. Error:", err)
 		os.Exit(2)
 	}

@@ -25,10 +25,10 @@ type Router struct {
 	personService personService
 }
 
-func (r *Router) Start(ctx context.Context, addr string) error {
+func (r *Router) Start(ctx context.Context, port string) error {
 	log.Println("Starting http router...")
 	srv := http.Server{
-		Addr:    addr,
+		Addr:    ":" + port,
 		Handler: r.router,
 	}
 
