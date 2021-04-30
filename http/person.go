@@ -16,6 +16,8 @@ const personID = "personID"
 
 type Person struct {
 	ID           string `json:"id"`
+	Username     string `json:"username"`
+	Password     string `json:"password"` // TODO: Use better password handling
 	FirstName    string `json:"firstName"`
 	LastName     string `json:"lastName"`
 	EmailAddress string `json:"emailAddress"`

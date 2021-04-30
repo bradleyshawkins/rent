@@ -77,5 +77,26 @@ func (r *Router) registerEndpoints() {
 		router.Delete("/{personID}", r.DeletePerson)
 	})
 
+	// Person
+	//
 	r.router.Post("/register", r.Register)
+
+	// Landlord
+	// 	Properties
+	// 		Add a property to their list of properties
+	// 		Remove a property from their list of properties
+	// 		Edit a property from their list of properties
+	// 		Get a list of their properties
+	// 		Get details of their property
+	// 	Tenants
+	//		Approve tenant for property
+	//		Remove tenant from property??
+	//		View all tenants in owned properties
+	//		View tenant/s in owned property
+
+	// Tenant
+	//	Properties
+	//		Apply for property
+	//
+	//
 }
