@@ -23,7 +23,7 @@ func (e *Error) WriteError(w http.ResponseWriter) {
 	_ = json.NewEncoder(w).Encode(e)
 }
 
-func isDuplicate(err error) bool {
+func IsDuplicate(err error) bool {
 	type isDuplicate interface {
 		IsDuplicate() bool
 	}

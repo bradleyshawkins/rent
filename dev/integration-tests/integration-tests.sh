@@ -1,7 +1,7 @@
 #!/bin/sh
-#docker-compose up -d --force-recreate
-#
-#docker build . -t rent
+
+docker build . -t rent:local
+docker-compose up -d --force-recreate
 #docker run --env-file=./dev/integration-tests/config.env \
 #      --network=rent_network \
 #      --name=rent \

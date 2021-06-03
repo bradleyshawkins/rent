@@ -7,13 +7,18 @@ import (
 
 type personDatastore interface {
 	GetPerson(id uuid.UUID) (*rent.Person, error)
-	RegisterPerson(p *rent.Person) error
+	CreatePerson(p *rent.Person) error
 	UpdatePerson(p *rent.Person) error
 	DeletePerson(id uuid.UUID) error
 }
 
+type landlordDatastore interface {
+	CreateLandlord(personID uuid.UUID) (uuid.UUID, error)
+}
+
 type Service struct {
-	personDatastore personDatastore
+	personDatastore   personDatastore
+	landlordDatastore landlordDatastore
 }
 
 func NewPersonService(p personDatastore) *Service {

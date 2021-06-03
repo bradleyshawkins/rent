@@ -1,4 +1,4 @@
-version: '2.1'
+version: '3.6'
 services:
   rent:
     image: rent:local
@@ -10,8 +10,16 @@ services:
       - network
     ports:
       - 8080:8080
-    env_file:
-      - ./config.env
+    environment:
+      DATABASE_URL: postgresql://postgres:password@postgres:5432/rent
+      MIGRATION_PATH: /app/schema
+  rent-test:
+    image: rent-test:local
+    restart: always
+    depends_on:
+      - rent
+    networks:
+      - network
   postgres:
     image: postgres:13.2
     restart: always
@@ -19,14 +27,14 @@ services:
       - network
     ports:
       - 5432:5432
-    environment:
-      POSTGRES_PASSWORD: 'password'
-      POSTGRES_DB: 'rent'
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U postgres" ]
       interval: 5s
       timeout: 5s
       retries: 5
+    environment:
+      POSTGRES_PASSWORD: 'password'
+      POSTGRES_DB: 'rent'
 networks:
   network:
     driver: bridge

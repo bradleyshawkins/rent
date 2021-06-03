@@ -1,4 +1,4 @@
-package rent
+package models
 
 import (
 	"fmt"

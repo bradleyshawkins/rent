@@ -9,9 +9,9 @@ import (
 	"github.com/bradleyshawkins/rent"
 )
 
-func (p *Service) Register(person *rent.Person) (uuid.UUID, error) {
-	person.ID = uuid.NewV4()
-	err := p.personDatastore.RegisterPerson(person)
+func (p *Service) CreatePerson(person *rent.Person) (uuid.UUID, error) {
+	log.Println("Registering person")
+	err := p.personDatastore.CreatePerson(person)
 	if err != nil {
 		return uuid.UUID{}, fmt.Errorf("unable to register person. Error: %w", err)
 	}
@@ -30,6 +30,7 @@ func (p *Service) GetPerson(id uuid.UUID) (*rent.Person, error) {
 }
 
 func (p *Service) UpdatePerson(person *rent.Person) error {
+	log.Println("Updating person", person.ID)
 	err := p.personDatastore.UpdatePerson(person)
 	if err != nil {
 		return fmt.Errorf("unable to update person. Error: %w", err)
@@ -38,6 +39,7 @@ func (p *Service) UpdatePerson(person *rent.Person) error {
 }
 
 func (p *Service) DeletePerson(id uuid.UUID) error {
+	log.Println("Deleting person", id)
 	err := p.personDatastore.DeletePerson(id)
 	if err != nil {
 		return fmt.Errorf("unable to delete person. Error: %w", err)
