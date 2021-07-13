@@ -1,19 +1,30 @@
 package rent
 
-import uuid "github.com/satori/go.uuid"
+import (
+	"time"
+
+	uuid "github.com/satori/go.uuid"
+)
 
 type Property struct {
-	ID       uuid.UUID `db:"id"`
-	Name     string    `db:"name"`
-	Tenant   Tenant
-	Landlord Landlord
-	Address  Address
+	id                uuid.UUID
+	propertyInfo      PropertyInfo
+	currentRenter     *Renter
+	approvedApplicant *Renter
+	applicants        map[uuid.UUID]*Renter
 }
 
-func (p *Property) ChangeTenant(t Tenant) {
-	p.Tenant = t
+type PropertyInfo struct {
+	YearBuilt    time.Time
+	HouseType    string
+	RentPerMonth string
+	HomeSize     string
+	LandSize     string
+	Restrictions string // No Pets, No Smoking, etc
 }
 
-func (p *Property) UpdateName(name string) {
-	p.Name = name
+type Properties map[uuid.UUID]*Property
+
+func NewEmptyProperties() Properties {
+	return make(map[uuid.UUID]*Property)
 }

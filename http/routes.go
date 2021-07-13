@@ -8,21 +8,11 @@ import (
 	"os"
 	"os/signal"
 
-	"github.com/bradleyshawkins/rent"
 	"github.com/go-chi/chi"
-	uuid "github.com/satori/go.uuid"
 )
 
-type personService interface {
-	GetPerson(id uuid.UUID) (*rent.Person, error)
-	Register(p *rent.Person) (uuid.UUID, error)
-	UpdatePerson(p *rent.Person) error
-	DeletePerson(id uuid.UUID) error
-}
-
 type Router struct {
-	router        *chi.Mux
-	personService personService
+	router *chi.Mux
 }
 
 func (r *Router) Start(ctx context.Context, port string) error {
@@ -54,49 +44,41 @@ func (r *Router) Start(ctx context.Context, port string) error {
 	return nil
 }
 
-func SetupRouter(p personService) *Router {
+type register interface {
+	Register(m chi.Router)
+}
+
+func SetupRouter(routers ...register) *Router {
 	log.Println("Creating http router and registering endpoints...")
 	c := chi.NewRouter()
 	r := &Router{
-		router:        c,
-		personService: p,
+		router: c,
 	}
 
-	r.registerEndpoints()
+	for _, router := range routers {
+		router.Register(r.router)
+	}
 
 	return r
 }
 
-func (r *Router) registerEndpoints() {
+// Person
+//
 
-	r.router.Get("/health", r.Health)
+// Landlord
+// 	Properties
+// 		Add a property to their list of properties
+// 		Remove a property from their list of properties
+// 		Edit a property from their list of properties
+// 		Get a list of their properties
+// 		Get details of their property
+// 	Tenants
+//		Approve tenant for property
+//		Remove tenant from property??
+//		View all tenants in owned properties
+//		View tenant/s in owned property
 
-	r.router.Route("/person", func(router chi.Router) {
-		router.Get("/{personID}", r.GetPerson)
-		router.Put("/{personID}", r.UpdatePerson)
-		router.Delete("/{personID}", r.DeletePerson)
-	})
-
-	// Person
-	//
-	r.router.Post("/register", r.Register)
-
-	// Landlord
-	// 	Properties
-	// 		Add a property to their list of properties
-	// 		Remove a property from their list of properties
-	// 		Edit a property from their list of properties
-	// 		Get a list of their properties
-	// 		Get details of their property
-	// 	Tenants
-	//		Approve tenant for property
-	//		Remove tenant from property??
-	//		View all tenants in owned properties
-	//		View tenant/s in owned property
-
-	// Tenant
-	//	Properties
-	//		Apply for property
-	//
-	//
-}
+// Tenant
+//	Properties
+//		Apply for property
+//

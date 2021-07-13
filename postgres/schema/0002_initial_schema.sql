@@ -1,6 +1,6 @@
 -- +goose Up
 CREATE TABLE IF NOT EXISTS address(
-    id UUID NOT NULL PRIMARY KEY,
+    id UUID NOT NULL PRIMARY KEY DEFAULT gen_random_uuid(),
     address_1 TEXT NOT NULL,
     address_2 TEXT NULL,
     city TEXT NOT NULL,
@@ -10,31 +10,19 @@ CREATE TABLE IF NOT EXISTS address(
     modified_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE person (
+CREATE TABLE landlord (
     id UUID NOT NULL PRIMARY KEY,
-    username TEXT NOT NULL,
-    password TEXT NOT NULL, -- todo add better password stuff
-    first_name TEXT NOT NULL,
-    last_name TEXT NOT NULL,
-    address_id UUID REFERENCES address(id) ON UPDATE CASCADE,
+    person_id UUID NOT NULL REFERENCES person(id) ON UPDATE CASCADE,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     modified_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX person_username_idx ON person(username);
-CREATE INDEX person_address_idx ON person(address_id);
-
-
-CREATE TABLE IF NOT EXISTS contact(
+CREATE TABLE renter (
     id UUID NOT NULL PRIMARY KEY,
-    person_id UUID NOT NULL REFERENCES person(id) ON UPDATE CASCADE ON DELETE CASCADE,
-    contact_type TEXT CHECK ( contact_type in ('email', 'home', 'work', 'mobile' )),
-    contact_value TEXT NOT NULL,
+    person_id UUID NOT NULL REFERENCES person(id) ON UPDATE CASCADE,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     modified_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
-
-CREATE INDEX contact_type_idx ON contact(contact_type);
 
 CREATE TABLE IF NOT EXISTS property (
     id UUID NOT NULL PRIMARY KEY,
@@ -53,36 +41,24 @@ CREATE TABLE IF NOT EXISTS person_property(
     CONSTRAINT renter_pk PRIMARY KEY(person_id, property_id)
 );
 
--- +goose StatementBegin
-CREATE OR REPLACE FUNCTION update_modified_at_column()
-    RETURNS TRIGGER AS $$
-BEGIN
-    NEW.modified_at = NOW();
-    RETURN NEW;
-END;
-$$ language plpgsql;
--- +goose StatementEnd
+CREATE INDEX user_property_property_relation_idx ON person_property(property_relation);
 
+-- function created in previous sql file
 CREATE TRIGGER update_address_modified_at_column BEFORE INSERT OR UPDATE ON address FOR EACH ROW EXECUTE FUNCTION update_modified_at_column();
-CREATE TRIGGER update_contact_modified_at_column BEFORE INSERT OR UPDATE ON contact FOR EACH ROW EXECUTE FUNCTION update_modified_at_column();
-CREATE TRIGGER update_person_modified_at_column BEFORE INSERT OR UPDATE ON person FOR EACH ROW EXECUTE FUNCTION update_modified_at_column();
+CREATE TRIGGER update_landlord_modified_at_column BEFORE INSERT OR UPDATE ON landlord FOR EACH ROW EXECUTE FUNCTION update_modified_at_column();
+CREATE TRIGGER update_renter_modified_at_column BEFORE INSERT OR UPDATE ON renter FOR EACH ROW EXECUTE FUNCTION update_modified_at_column();
 CREATE TRIGGER update_property_modified_at_column BEFORE INSERT OR UPDATE ON property FOR EACH ROW EXECUTE FUNCTION update_modified_at_column();
 CREATE TRIGGER update_person_property_modified_at_column BEFORE INSERT OR UPDATE ON person_property FOR EACH ROW EXECUTE FUNCTION update_modified_at_column();
 
 -- +goose Down
 DROP TRIGGER IF EXISTS update_address_modified_at_column ON address;
-DROP TRIGGER IF EXISTS update_contact_modified_at_column ON contact;
 DROP TRIGGER IF EXISTS update_person_property_modified_at_column ON person_property;
-DROP TRIGGER IF EXISTS update_person_modified_at_column on person;
+DROP TRIGGER IF EXISTS update_renter_modified_at_column on renter;
 DROP TRIGGER IF EXISTS update_property_modified_at_column ON property;
-DROP FUNCTION IF EXISTS update_modified_at_column();
-
-DROP INDEX person_username_idx;
-DROP INDEX person_address_idx;
-DROP INDEX contact_type_idx;
+DROP TRIGGER IF EXISTS update_landlord_modified_at_column ON landlord;
 
 DROP TABLE address;
-DROP TABLE person;
-DROP TABLE contact;
+DROP TABLE landlord;
+DROP TABLE renter;
 DROP TABLE property;
 DROP TABLE person_property;
