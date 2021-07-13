@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/jackc/pgconn"
 )
@@ -38,7 +39,7 @@ type Error struct {
 }
 
 func (e *Error) Error() string {
-	return e.message
+	return fmt.Sprintf("Error: %s, Message: %s", e.err, e.message)
 }
 
 func (e *Error) IsDuplicate() bool {

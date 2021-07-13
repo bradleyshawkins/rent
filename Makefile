@@ -9,6 +9,7 @@ test.container.down:
 	docker-compose -f docker-compose.test.yaml down -v
 test.container.integration: test.container.down service.container.build test.container.build
 	docker-compose -f docker-compose.test.yaml up --abort-on-container-exit --force-recreate -V
+	docker-compose -f docker-compose.test.yaml down -v
 test.unit:
 	go test -tags=unit ./...
 

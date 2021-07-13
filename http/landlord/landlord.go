@@ -5,13 +5,17 @@ import (
 
 	uuid "github.com/satori/go.uuid"
 
+	"github.com/bradleyshawkins/rent"
+
 	"github.com/go-chi/chi"
 )
 
 const landlordID = "landlordID"
 
 type landlordService interface {
-	CreateLandlord(personID uuid.UUID) (uuid.UUID, error)
+	RegisterLandlord(landlord *rent.Landlord) error
+	CancelLandlord(landlordID uuid.UUID) error
+	GetLandlord(landlordID uuid.UUID) (rent.Landlord, error)
 }
 
 type Router struct {
@@ -25,4 +29,6 @@ func NewLandlordRouter(r landlordService) *Router {
 func (p *Router) Register(m chi.Router) {
 	log.Println("Registering landlord endpoints")
 	// Associate a person as a landlord
+	m.Post("/landlord", p.RegisterLandlord)
+	m.Delete("/landlord/{landlordID}", p.Cancel)
 }

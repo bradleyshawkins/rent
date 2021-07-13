@@ -12,8 +12,7 @@ INSERT INTO role VALUES (3, 'read');
 CREATE TABLE person (
     id UUID NOT NULL PRIMARY KEY,
     username TEXT NOT NULL,
-    password_salt TEXT NOT NULL,
-    password_hash TEXT NOT NULL,
+    password TEXT NOT NULL,
     first_name TEXT NOT NULL,
     last_name TEXT NOT NULL,
     email_address TEXT NOT NULL,

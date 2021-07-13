@@ -1,10 +1,12 @@
 package rent
 
 import (
-	"fmt"
+	"regexp"
 
 	uuid "github.com/satori/go.uuid"
 )
+
+var emailRegex = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
 
 type Person struct {
 	ID           uuid.UUID
@@ -42,16 +44,41 @@ func NewPersonWithID(id uuid.UUID, username, password, firstName, lastName, emai
 	return p, p.Validate()
 }
 func (p Person) Validate() error {
-	if p.EmailAddress == "" {
-		return fmt.Errorf("email address is required for users")
+
+	if p.ID == (uuid.UUID{}) {
+		return NewValidationError("id", Missing)
+	}
+
+	if p.Username == "" {
+		return NewValidationError("username", Missing)
+	}
+
+	if p.Password == "" {
+		return NewValidationError("password", Missing)
 	}
 
 	if p.FirstName == "" {
-		return fmt.Errorf("first name is required for users")
+		return NewValidationError("firstName", Missing)
 	}
 
 	if p.LastName == "" {
-		return fmt.Errorf("last name is required for users")
+		return NewValidationError("lastName", Missing)
+	}
+
+	if err := ValidateEmailAddress(p.EmailAddress); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func ValidateEmailAddress(email string) error {
+	if email == "" {
+		return NewValidationError("emailAddress", Missing)
+	}
+
+	if !emailRegex.MatchString(email) {
+		return NewValidationError("emailAddress", Invalid)
 	}
 
 	return nil

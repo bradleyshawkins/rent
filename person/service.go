@@ -13,7 +13,8 @@ type personDatastore interface {
 }
 
 type landlordDatastore interface {
-	CreateLandlord(personID uuid.UUID) (uuid.UUID, error)
+	RegisterLandlord(landlord *rent.Landlord) error
+	CancelLandlord(landlordID uuid.UUID) error
 }
 
 type Service struct {
@@ -21,6 +22,6 @@ type Service struct {
 	landlordDatastore landlordDatastore
 }
 
-func NewPersonService(p personDatastore) *Service {
-	return &Service{personDatastore: p}
+func NewPersonService(p personDatastore, l landlordDatastore) *Service {
+	return &Service{personDatastore: p, landlordDatastore: l}
 }
