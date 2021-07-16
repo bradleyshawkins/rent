@@ -7,7 +7,7 @@ services:
       postgres:
         condition: service_healthy
     networks:
-      - network
+      - rent
     ports:
       - 8080:8080
     environment:
@@ -22,22 +22,15 @@ services:
     depends_on:
       - rent
     networks:
-      - network
+      - rent
   postgres:
-    image: postgres:13.2
-    restart: always
     networks:
-      - network
-    ports:
-      - 5432:5432
+      - rent
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U postgres" ]
       interval: 5s
       timeout: 5s
       retries: 5
-    environment:
-      POSTGRES_PASSWORD: 'password'
-      POSTGRES_DB: 'rent'
 networks:
-  network:
+  rent:
     driver: bridge
