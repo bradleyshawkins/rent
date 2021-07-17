@@ -8,7 +8,7 @@ import (
 
 var emailRegex = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
 
-type Person struct {
+type person struct {
 	ID           uuid.UUID
 	Username     string
 	Password     string
@@ -18,8 +18,8 @@ type Person struct {
 	PhoneNumber  string
 }
 
-func NewPerson(username, password, firstName, lastName, emailAddress, phoneNumber string) (*Person, error) {
-	p := &Person{
+func newPerson(username, password, firstName, lastName, emailAddress, phoneNumber string) (*person, error) {
+	p := &person{
 		ID:           uuid.NewV4(),
 		Username:     username,
 		Password:     password,
@@ -28,22 +28,10 @@ func NewPerson(username, password, firstName, lastName, emailAddress, phoneNumbe
 		PhoneNumber:  phoneNumber,
 		EmailAddress: emailAddress,
 	}
-	return p, p.Validate()
+	return p, p.validate()
 }
 
-func NewPersonWithID(id uuid.UUID, username, password, firstName, lastName, emailAddress, phoneNumber string) (*Person, error) {
-	p := &Person{
-		ID:           id,
-		Username:     username,
-		Password:     password,
-		FirstName:    firstName,
-		LastName:     lastName,
-		PhoneNumber:  phoneNumber,
-		EmailAddress: emailAddress,
-	}
-	return p, p.Validate()
-}
-func (p Person) Validate() error {
+func (p person) validate() error {
 
 	if p.ID == (uuid.UUID{}) {
 		return NewValidationError("id", Missing)
@@ -65,14 +53,14 @@ func (p Person) Validate() error {
 		return NewValidationError("lastName", Missing)
 	}
 
-	if err := ValidateEmailAddress(p.EmailAddress); err != nil {
+	if err := validateEmailAddress(p.EmailAddress); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func ValidateEmailAddress(email string) error {
+func validateEmailAddress(email string) error {
 	if email == "" {
 		return NewValidationError("emailAddress", Missing)
 	}

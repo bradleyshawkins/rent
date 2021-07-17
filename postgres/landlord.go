@@ -11,7 +11,13 @@ func (p *Postgres) RegisterLandlord(landlord *rent.Landlord) error {
 		return convertToError(err, "unable to start transaction")
 	}
 
-	defer tx.Rollback()
+	defer func() error {
+		if err != nil {
+			err = tx.Rollback()
+			return err
+		}
+		return nil
+	}()
 
 	_, err = tx.Exec("INSERT INTO person(id, username, password, first_name, last_name, email_address) VALUES ($1, $2, $3, $4, $5, $6)", landlord.ID, landlord.Username, landlord.Password, landlord.FirstName, landlord.LastName, landlord.EmailAddress)
 	if err != nil {
@@ -29,9 +35,13 @@ func (p *Postgres) RegisterLandlord(landlord *rent.Landlord) error {
 }
 
 func (p *Postgres) CancelLandlord(landlordID uuid.UUID) error {
+	_, err := p.db.Exec(`UPDATE person SET is_active = false WHERE landlord_id = $1`, landlordID)
+	if err != nil {
+		return convertToError(err, "unable to cancel landlord")
+	}
 	return nil
 }
 
-func (p *Postgres) AddProperty(property rent.Property) error {
-	return nil
+func (m *Postgres) GetLandlord(landlordID uuid.UUID) (*rent.Landlord, error) {
+	return nil, nil
 }

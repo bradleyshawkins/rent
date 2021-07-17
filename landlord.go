@@ -4,20 +4,24 @@ import (
 	uuid "github.com/satori/go.uuid"
 )
 
+type LandlordService interface {
+	GetLandlord(landlordID uuid.UUID) (*Landlord, error)
+	RegisterLandlord(landlord *Landlord) error
+	CancelLandlord(landlordID uuid.UUID) error
+}
+
 type Landlord struct {
-	Person
+	person
 	LandlordID uuid.UUID
-	Properties Properties
 }
 
 func NewEmptyLandlord(username, password, firstName, lastName, emailAddress, phoneNumber string) (*Landlord, error) {
-	p, err := NewPerson(username, password, firstName, lastName, emailAddress, phoneNumber)
+	p, err := newPerson(username, password, firstName, lastName, emailAddress, phoneNumber)
 	if err != nil {
 		return nil, err
 	}
 	return &Landlord{
-		Person:     *p,
+		person:     *p,
 		LandlordID: uuid.NewV4(),
-		Properties: NewEmptyProperties(),
 	}, nil
 }

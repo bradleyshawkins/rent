@@ -4,12 +4,12 @@ deps.down:
 	docker-compose down -v
 
 test.container.build:
-	docker build . -f test.Dockerfile -t rent-test:local
+	docker build . -f dev/integration-tests/test.Dockerfile -t rent-test:local
 test.container.down:
-	docker-compose -f docker-compose.test.yaml down -v
+	docker-compose -f docker-compose.yaml -f dev/integration-tests/docker-compose.test.yaml down -v
 test.container.integration: test.container.down service.container.build test.container.build
-	docker-compose -f docker-compose.test.yaml up --abort-on-container-exit --force-recreate -V
-	docker-compose -f docker-compose.test.yaml down -v
+	docker-compose -f docker-compose.yaml -f dev/integration-tests/docker-compose.test.yaml up --abort-on-container-exit --force-recreate -V
+	docker-compose -f docker-compose.yaml -f dev/integration-tests/docker-compose.test.yaml down -v
 test.unit:
 	go test -tags=unit ./...
 

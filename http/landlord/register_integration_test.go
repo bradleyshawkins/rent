@@ -15,7 +15,7 @@ import (
 func TestRegisterLandlord(t *testing.T) {
 	u := os.Getenv("SERVICE_URL")
 	u += "/landlord"
-	l, err := NewRegisterLandlordRequest(u, "registerLandlord", "registerLandlord@test.com")
+	l, err := NewRegisterLandlordRequest(u, "registerLandlord_register", "registerLandlord_register@test.com")
 	if err != nil {
 		t.Fatalf("Unable to create landlord. Error: %v", err)
 	}

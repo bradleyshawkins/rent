@@ -1,20 +1,22 @@
 package rent
 
-import "fmt"
+import (
+	"fmt"
+)
 
-type Reason string
+type ValidationReason string
 
 const (
-	Missing Reason = "Missing"
-	Invalid Reason = "Invalid"
+	Missing ValidationReason = "Missing"
+	Invalid ValidationReason = "Invalid"
 )
 
 type ValidationError struct {
 	Field  string
-	Reason Reason
+	Reason ValidationReason
 }
 
-func NewValidationError(field string, reason Reason) *ValidationError {
+func NewValidationError(field string, reason ValidationReason) *ValidationError {
 	return &ValidationError{
 		Field:  field,
 		Reason: reason,

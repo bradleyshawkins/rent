@@ -31,7 +31,7 @@ func (r *Router) Start(ctx context.Context, port string) error {
 	signal.Notify(c, os.Interrupt, os.Kill)
 
 	go func() {
-		// TODO: Validate that this is working as expected
+		// TODO: validate that this is working as expected
 		for i := range c {
 			log.Println("Shutting down. Signal Interrupt", i)
 			err := srv.Shutdown(ctx)
@@ -62,7 +62,7 @@ func SetupRouter(routers ...register) *Router {
 	return r
 }
 
-// Person
+// person
 //
 
 // Landlord

@@ -35,7 +35,7 @@ func main() {
 	personService := person.NewPersonService(m, m)
 
 	userRouter := personrouter.NewPersonRouter(personService)
-	landlordRouter := landlord.NewLandlordRouter(personService)
+	landlordRouter := landlord.NewLandlordRouter(m)
 
 	router := http.SetupRouter(userRouter, landlordRouter)
 

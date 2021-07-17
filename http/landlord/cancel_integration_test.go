@@ -13,7 +13,7 @@ func TestCancel(t *testing.T) {
 	u := os.Getenv("SERVICE_URL")
 	u += "/landlord"
 
-	l, err := NewRegisterLandlordRequest(u, "registerLandlord", "registerLandlord@test.com")
+	l, err := NewRegisterLandlordRequest(u, "registerLandlord-cancel", "registerLandlord_cancel@test.com")
 	if err != nil {
 		t.Fatalf("Unable to create landlord. Error: %v", err)
 	}
