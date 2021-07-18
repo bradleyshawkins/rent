@@ -6,15 +6,10 @@ import (
 	"log"
 	"os"
 
-	"github.com/bradleyshawkins/rent/http/landlord"
-	"github.com/bradleyshawkins/rent/rest"
-
-	"github.com/bradleyshawkins/rent/person"
-
-	personrouter "github.com/bradleyshawkins/rent/http/person"
-	"github.com/bradleyshawkins/rent/postgres"
-
 	"github.com/bradleyshawkins/rent/config"
+	"github.com/bradleyshawkins/rent/postgres"
+	"github.com/bradleyshawkins/rent/rest"
+	"github.com/bradleyshawkins/rent/rest/landlord"
 )
 
 func main() {
@@ -32,12 +27,9 @@ func main() {
 		os.Exit(1)
 	}
 
-	personService := person.NewPersonService(m, m)
-
-	userRouter := personrouter.NewPersonRouter(personService)
 	landlordRouter := landlord.NewLandlordRouter(m)
 
-	router := rest.SetupRouter(userRouter, landlordRouter)
+	router := rest.SetupRouter(landlordRouter)
 
 	if err := router.Start(context.Background(), c.Port); err != nil {
 		log.Println("unable to start router. Error:", err)
