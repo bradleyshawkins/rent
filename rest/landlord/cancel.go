@@ -9,7 +9,7 @@ import (
 
 	"github.com/go-chi/chi"
 
-	h "github.com/bradleyshawkins/rent/http"
+	"github.com/bradleyshawkins/rent/rest"
 )
 
 func (p *Router) Cancel(w http.ResponseWriter, r *http.Request) {
@@ -20,22 +20,22 @@ func (p *Router) Cancel(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (p *Router) cancel(w http.ResponseWriter, r *http.Request) *h.Error {
+func (p *Router) cancel(w http.ResponseWriter, r *http.Request) *rest.Error {
 	id := chi.URLParam(r, landlordID)
 	if id == "" {
-		return h.NewError(http.StatusBadRequest, "landlordID is required")
+		return rest.NewError(http.StatusBadRequest, "landlordID is required")
 	}
 
 	landlordID, err := uuid.FromString(id)
 	if err != nil {
 		log.Println("invalid uuid received. UUID:", id)
-		return h.NewError(http.StatusBadRequest, "invalid landlordID provided")
+		return rest.NewError(http.StatusBadRequest, "invalid landlordID provided")
 	}
 
 	err = p.landlordService.CancelLandlord(landlordID)
 	if err != nil {
 		log.Println(fmt.Errorf("unable to cancel landlord. Error: %v, LandlordID: %v", err, id))
-		return h.NewError(http.StatusInternalServerError, "unable to cancel landlord")
+		return rest.NewError(http.StatusInternalServerError, "unable to cancel landlord")
 	}
 	return nil
 }

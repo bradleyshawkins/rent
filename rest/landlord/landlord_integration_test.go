@@ -6,7 +6,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/bradleyshawkins/rent/http/landlord"
+	"github.com/bradleyshawkins/rent/rest/landlord"
 )
 
 func TestLandlordEndpoints(t *testing.T) {

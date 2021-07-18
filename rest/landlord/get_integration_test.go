@@ -9,7 +9,7 @@ import (
 
 	"github.com/matryer/is"
 
-	"github.com/bradleyshawkins/rent/http/landlord"
+	"github.com/bradleyshawkins/rent/rest/landlord"
 )
 
 func TestGetLandlord(t *testing.T) {
