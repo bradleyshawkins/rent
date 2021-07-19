@@ -1,4 +1,4 @@
-package landlord_test
+package person_test
 
 import (
 	"encoding/json"
@@ -6,7 +6,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/bradleyshawkins/rent/rest/landlord"
+	"github.com/bradleyshawkins/rent/rest/person"
 )
 
 func TestCancel(t *testing.T) {
@@ -27,13 +27,13 @@ func TestCancel(t *testing.T) {
 		t.Fatalf("Unexpected status code. Expected: %v, Got: %v", http.StatusCreated, resp.StatusCode)
 	}
 
-	var registerResponse landlord.RegisterResponse
+	var registerResponse person.RegisterResponse
 	err = json.NewDecoder(resp.Body).Decode(&registerResponse)
 	if err != nil {
 		t.Fatalf("unable to decode register landlord response. Error: %v", err)
 	}
 
-	cr, err := http.NewRequest(http.MethodDelete, u+"/"+registerResponse.LandlordID.String(), http.NoBody)
+	cr, err := http.NewRequest(http.MethodDelete, u+"/"+registerResponse.PersonID.String(), http.NoBody)
 	if err != nil {
 		t.Fatalf("unable to create delete landlord request. Error: %v", err)
 	}

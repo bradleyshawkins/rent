@@ -45,7 +45,7 @@ func (r *Router) Start(ctx context.Context, port string) error {
 }
 
 type register interface {
-	Register(m chi.Router)
+	RegisterEndpoints(m chi.Router)
 }
 
 func SetupRouter(routers ...register) *Router {
@@ -56,7 +56,7 @@ func SetupRouter(routers ...register) *Router {
 	}
 
 	for _, router := range routers {
-		router.Register(r.router)
+		router.RegisterEndpoints(r.router)
 	}
 
 	return r

@@ -9,7 +9,7 @@ import (
 	"github.com/bradleyshawkins/rent/config"
 	"github.com/bradleyshawkins/rent/postgres"
 	"github.com/bradleyshawkins/rent/rest"
-	"github.com/bradleyshawkins/rent/rest/landlord"
+	"github.com/bradleyshawkins/rent/rest/person"
 )
 
 func main() {
@@ -27,7 +27,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	landlordRouter := landlord.NewLandlordRouter(m)
+	landlordRouter := person.NewPersonRouter(m)
 
 	router := rest.SetupRouter(landlordRouter)
 

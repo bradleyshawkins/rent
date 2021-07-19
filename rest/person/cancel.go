@@ -1,4 +1,4 @@
-package landlord
+package person
 
 import (
 	"fmt"
@@ -21,21 +21,21 @@ func (p *Router) Cancel(w http.ResponseWriter, r *http.Request) {
 }
 
 func (p *Router) cancel(w http.ResponseWriter, r *http.Request) *rest.Error {
-	id := chi.URLParam(r, landlordID)
+	id := chi.URLParam(r, personID)
 	if id == "" {
-		return rest.NewError(http.StatusBadRequest, "landlordID is required")
+		return rest.NewError(http.StatusBadRequest, "personID is required")
 	}
 
-	landlordID, err := uuid.FromString(id)
+	personID, err := uuid.FromString(id)
 	if err != nil {
 		log.Println("invalid uuid received. UUID:", id)
-		return rest.NewError(http.StatusBadRequest, "invalid landlordID provided")
+		return rest.NewError(http.StatusBadRequest, "invalid personID provided")
 	}
 
-	err = p.landlordService.CancelLandlord(landlordID)
+	err = p.personService.CancelPerson(personID)
 	if err != nil {
-		log.Println(fmt.Errorf("unable to cancel landlord. Error: %v, LandlordID: %v", err, id))
-		return rest.NewError(http.StatusInternalServerError, "unable to cancel landlord")
+		log.Println(fmt.Errorf("unable to cancel person. Error: %v, PersonID: %v", err, id))
+		return rest.NewError(http.StatusInternalServerError, "unable to cancel person")
 	}
 	return nil
 }

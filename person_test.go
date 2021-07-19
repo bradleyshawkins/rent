@@ -8,7 +8,7 @@ import (
 	"github.com/matryer/is"
 )
 
-func TestNewEmptyLandlord(t *testing.T) {
+func TestNewPerson(t *testing.T) {
 	is := is.New(t)
 
 	u := "username"
@@ -18,7 +18,7 @@ func TestNewEmptyLandlord(t *testing.T) {
 	ea := "test.email@test.com"
 	pn := "8019991234"
 
-	l, err := rent.NewEmptyLandlord(u, p, fn, ln, ea, pn)
+	l, err := rent.NewPerson(u, p, fn, ln, ea, pn)
 	is.NoErr(err)
 
 	is.Equal(l.Username, u)
@@ -29,7 +29,7 @@ func TestNewEmptyLandlord(t *testing.T) {
 	is.Equal(l.PhoneNumber, pn)
 }
 
-func TestNewEmptyLandlord_MissingField(t *testing.T) {
+func TestNewPerson_MissingField(t *testing.T) {
 	u := "username"
 	p := "password"
 	fn := "firstName"
@@ -56,7 +56,7 @@ func TestNewEmptyLandlord_MissingField(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			i := is.New(t)
-			_, err := rent.NewEmptyLandlord(tt.username, tt.password, tt.firstName, tt.lastName, tt.emailAddress, tt.phoneNumber)
+			_, err := rent.NewPerson(tt.username, tt.password, tt.firstName, tt.lastName, tt.emailAddress, tt.phoneNumber)
 			i.True(err != nil)
 
 			v := &rent.ValidationError{}
@@ -66,7 +66,7 @@ func TestNewEmptyLandlord_MissingField(t *testing.T) {
 	}
 }
 
-func TestNewEmptyLandlord_InvalidField(t *testing.T) {
+func TestNewPerson_InvalidField(t *testing.T) {
 	i := is.New(t)
 	u := "username"
 	p := "password"
@@ -85,7 +85,7 @@ func TestNewEmptyLandlord_InvalidField(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := rent.NewEmptyLandlord(u, p, fn, ln, tt.emailAddress, pn)
+			_, err := rent.NewPerson(u, p, fn, ln, tt.emailAddress, pn)
 			i.True(err != nil)
 
 			v := &rent.ValidationError{}

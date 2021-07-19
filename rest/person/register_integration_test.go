@@ -1,6 +1,6 @@
 // +build integration
 
-package landlord_test
+package person_test
 
 import (
 	"bytes"
@@ -9,7 +9,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/bradleyshawkins/rent/rest/landlord"
+	"github.com/bradleyshawkins/rent/rest/person"
 )
 
 func TestRegisterLandlord(t *testing.T) {
@@ -83,7 +83,7 @@ func TestRegisterLandlord_BadInput(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			l := landlord.RegisterRequest{
+			l := person.RegisterRequest{
 				Username:     test.username,
 				Password:     test.password,
 				FirstName:    test.firstName,
@@ -115,7 +115,7 @@ func TestRegisterLandlord_BadInput(t *testing.T) {
 }
 
 func NewRegisterLandlordRequest(u string, username string, emailAddress string) (*http.Request, error) {
-	b, err := json.Marshal(landlord.RegisterRequest{
+	b, err := json.Marshal(person.RegisterRequest{
 		Username:     username,
 		Password:     "password",
 		FirstName:    "FirstName",

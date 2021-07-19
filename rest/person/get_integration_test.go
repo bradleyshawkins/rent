@@ -1,4 +1,4 @@
-package landlord_test
+package person_test
 
 import (
 	"bytes"
@@ -7,9 +7,8 @@ import (
 	"os"
 	"testing"
 
+	"github.com/bradleyshawkins/rent/rest/person"
 	"github.com/matryer/is"
-
-	"github.com/bradleyshawkins/rent/rest/landlord"
 )
 
 func TestGetLandlord(t *testing.T) {
@@ -17,7 +16,7 @@ func TestGetLandlord(t *testing.T) {
 	u := os.Getenv("SERVICE_URL")
 	u += "/landlord"
 
-	reg := landlord.RegisterRequest{
+	reg := person.RegisterRequest{
 		Username:     "registerRequest",
 		Password:     "registerPassword",
 		FirstName:    "firstName",
@@ -35,11 +34,11 @@ func TestGetLandlord(t *testing.T) {
 
 	i.True(resp.StatusCode == http.StatusCreated)
 
-	var registerResponse landlord.RegisterResponse
+	var registerResponse person.RegisterResponse
 	err = json.NewDecoder(resp.Body).Decode(&registerResponse)
 	i.NoErr(err)
 
-	cr, err := http.NewRequest(http.MethodGet, u+"/"+registerResponse.LandlordID.String(), http.NoBody)
+	cr, err := http.NewRequest(http.MethodGet, u+"/"+registerResponse.PersonID.String(), http.NoBody)
 	i.NoErr(err)
 
 	getResp, err := http.DefaultClient.Do(cr)
@@ -47,11 +46,11 @@ func TestGetLandlord(t *testing.T) {
 
 	i.True(getResp.StatusCode == http.StatusOK)
 
-	var gl landlord.GetLandlordResponse
+	var gl person.GetPersonResponse
 	err = json.NewDecoder(getResp.Body).Decode(&gl)
 	i.NoErr(err)
 
-	i.True(registerResponse.LandlordID == gl.LandlordID)
+	i.True(registerResponse.PersonID == gl.PersonID)
 	i.True(gl.LastName == reg.LastName)
 	i.True(gl.FirstName == reg.FirstName)
 }

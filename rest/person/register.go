@@ -1,4 +1,4 @@
-package landlord
+package person
 
 import (
 	"encoding/json"
@@ -21,17 +21,17 @@ type RegisterRequest struct {
 }
 
 type RegisterResponse struct {
-	LandlordID uuid.UUID `json:"landlordID"`
+	PersonID uuid.UUID `json:"personID"`
 }
 
-func (l *Router) RegisterLandlord(w http.ResponseWriter, r *http.Request) {
-	if err := l.registerLandlord(w, r); err != nil {
+func (l *Router) Register(w http.ResponseWriter, r *http.Request) {
+	if err := l.register(w, r); err != nil {
 		err.WriteError(w)
 		return
 	}
 }
 
-func (l *Router) registerLandlord(w http.ResponseWriter, r *http.Request) *rest.Error {
+func (l *Router) register(w http.ResponseWriter, r *http.Request) *rest.Error {
 	var rr RegisterRequest
 	err := json.NewDecoder(r.Body).Decode(&rr)
 	if err != nil {
@@ -39,14 +39,14 @@ func (l *Router) registerLandlord(w http.ResponseWriter, r *http.Request) *rest.
 		return rest.NewError(http.StatusBadRequest, "invalid request")
 	}
 
-	p, err := rent.NewEmptyLandlord(rr.Username, rr.Password, rr.FirstName, rr.LastName, rr.EmailAddress, "")
+	p, err := rent.NewPerson(rr.Username, rr.Password, rr.FirstName, rr.LastName, rr.EmailAddress, "")
 	if err != nil {
-		log.Println(fmt.Errorf("invalid landlord creation. Error: %v", err))
+		log.Println(fmt.Errorf("invalid person creation. Error: %v", err))
 		return rest.NewError(http.StatusBadRequest, err.Error())
 	}
 
-	if err := l.landlordService.RegisterLandlord(p); err != nil {
-		log.Println(fmt.Errorf("unable to create landlord. landlordID: %s Error: %v", p.ID, err))
+	if err := l.personService.RegisterPerson(p); err != nil {
+		log.Println(fmt.Errorf("unable to create person. personID: %s Error: %v", p.ID, err))
 		if rest.IsDuplicate(err) {
 			return rest.NewError(http.StatusConflict, "username already exists")
 		}
@@ -54,8 +54,8 @@ func (l *Router) registerLandlord(w http.ResponseWriter, r *http.Request) *rest.
 	}
 
 	w.WriteHeader(http.StatusCreated)
-	if err := json.NewEncoder(w).Encode(RegisterResponse{LandlordID: p.ID}); err != nil {
-		log.Print(fmt.Errorf("unable to marshal landlord creation. Error: %v", err))
+	if err := json.NewEncoder(w).Encode(RegisterResponse{PersonID: p.ID}); err != nil {
+		log.Print(fmt.Errorf("unable to marshal person creation. Error: %v", err))
 		return rest.NewError(http.StatusInternalServerError, "unable to marshal landlord response")
 	}
 

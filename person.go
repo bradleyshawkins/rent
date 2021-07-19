@@ -8,7 +8,13 @@ import (
 
 var emailRegex = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
 
-type person struct {
+type PersonService interface {
+	GetPerson(personID uuid.UUID) (*Person, error)
+	RegisterPerson(personID *Person) error
+	CancelPerson(personID uuid.UUID) error
+}
+
+type Person struct {
 	ID           uuid.UUID
 	Username     string
 	Password     string
@@ -18,8 +24,8 @@ type person struct {
 	PhoneNumber  string
 }
 
-func newPerson(username, password, firstName, lastName, emailAddress, phoneNumber string) (*person, error) {
-	p := &person{
+func NewPerson(username, password, firstName, lastName, emailAddress, phoneNumber string) (*Person, error) {
+	p := &Person{
 		ID:           uuid.NewV4(),
 		Username:     username,
 		Password:     password,
@@ -31,7 +37,7 @@ func newPerson(username, password, firstName, lastName, emailAddress, phoneNumbe
 	return p, p.validate()
 }
 
-func (p person) validate() error {
+func (p Person) validate() error {
 
 	if p.ID == (uuid.UUID{}) {
 		return NewValidationError("id", Missing)
