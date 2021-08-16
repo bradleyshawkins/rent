@@ -1,6 +1,6 @@
 // +build integration
 
-package person_test
+package account_test
 
 import (
 	"bytes"
@@ -9,15 +9,15 @@ import (
 	"os"
 	"testing"
 
-	"github.com/bradleyshawkins/rent/rest/person"
+	"github.com/bradleyshawkins/rent/rest/account"
 )
 
-func TestRegisterLandlord(t *testing.T) {
+func TestRegisterAccount(t *testing.T) {
 	u := os.Getenv("SERVICE_URL")
-	u += "/landlord"
-	l, err := NewRegisterLandlordRequest(u, "registerLandlord_register", "registerLandlord_register@test.com")
+	u += "/accounts/register"
+	l, err := NewRegisterAccountRequest(u, "registerAccount_register@test.com")
 	if err != nil {
-		t.Fatalf("Unable to create landlord. Error: %v", err)
+		t.Fatalf("Unable to create person. Error: %v", err)
 	}
 
 	resp, err := http.DefaultClient.Do(l)
@@ -30,12 +30,12 @@ func TestRegisterLandlord(t *testing.T) {
 	}
 }
 
-func TestRegisterLandlord_UsernameExists(t *testing.T) {
+func TestRegisterAccount_EmailAddressExists(t *testing.T) {
 	u := os.Getenv("SERVICE_URL")
-	u += "/landlord"
-	r, err := NewRegisterLandlordRequest(u, "registerLandlordUsernameExists", "registerLandlordUsernameExists@test.com")
+	u += "/accounts/register"
+	r, err := NewRegisterAccountRequest(u, "registerAccountUsernameExists@test.com")
 	if err != nil {
-		t.Fatalf("Unable to create landlord request")
+		t.Fatalf("Unable to create person request")
 	}
 
 	resp, err := http.DefaultClient.Do(r)
@@ -47,9 +47,9 @@ func TestRegisterLandlord_UsernameExists(t *testing.T) {
 		t.Errorf("Unexpected status code. Expected: %v, Got: %v", http.StatusCreated, resp.StatusCode)
 	}
 
-	r2, err := NewRegisterLandlordRequest(u, "registerLandlordUsernameExists", "registerLandlordUsernameExists@test.com")
+	r2, err := NewRegisterAccountRequest(u, "registerAccountUsernameExists@test.com")
 	if err != nil {
-		t.Fatalf("Unable to create landlord request. Error: %v", err)
+		t.Fatalf("Unable to create person request. Error: %v", err)
 	}
 
 	resp2, err := http.DefaultClient.Do(r2)
@@ -62,29 +62,26 @@ func TestRegisterLandlord_UsernameExists(t *testing.T) {
 	}
 }
 
-func TestRegisterLandlord_BadInput(t *testing.T) {
+func TestRegisterAccount_BadInput(t *testing.T) {
 	u := os.Getenv("SERVICE_URL")
-	u += "/landlord"
+	u += "/accounts/register"
 	tests := []struct {
 		name         string
-		username     string
 		password     string
 		firstName    string
 		lastName     string
 		emailAddress string
 	}{
-		{name: "Missing Username", password: "password", firstName: "firstName", lastName: "lastName", emailAddress: "test.address@test.com"},
-		{name: "Missing Password", username: "username", firstName: "firstName", lastName: "lastName", emailAddress: "test.address@test.com"},
-		{name: "Missing FirstName", username: "username", password: "password", lastName: "lastName", emailAddress: "test.address@test.com"},
-		{name: "Missing LastName", username: "username", password: "password", firstName: "firstName", emailAddress: "test.address@test.com"},
-		{name: "Missing EmailAddress", username: "username", password: "password", firstName: "firstName", lastName: "lastName"},
-		{name: "Invalid EmailAddress", username: "username", password: "password", firstName: "firstName", lastName: "lastName", emailAddress: "test"},
+		{name: "Missing Password", firstName: "firstName", lastName: "lastName", emailAddress: "test.address@test.com"},
+		{name: "Missing FirstName", password: "password", lastName: "lastName", emailAddress: "test.address@test.com"},
+		{name: "Missing LastName", password: "password", firstName: "firstName", emailAddress: "test.address@test.com"},
+		{name: "Missing EmailAddress", password: "password", firstName: "firstName", lastName: "lastName"},
+		{name: "Invalid EmailAddress", password: "password", firstName: "firstName", lastName: "lastName", emailAddress: "test"},
 	}
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			l := person.RegisterRequest{
-				Username:     test.username,
+			l := account.RegisterAccountRequest{
 				Password:     test.password,
 				FirstName:    test.firstName,
 				LastName:     test.lastName,
@@ -93,7 +90,7 @@ func TestRegisterLandlord_BadInput(t *testing.T) {
 
 			b, err := json.Marshal(l)
 			if err != nil {
-				t.Fatalf("Unable to marshal landlord register request. Error: %v", err)
+				t.Fatalf("Unable to marshal person register request. Error: %v", err)
 			}
 
 			r, err := http.NewRequest(http.MethodPost, u, bytes.NewReader(b))
@@ -114,9 +111,8 @@ func TestRegisterLandlord_BadInput(t *testing.T) {
 
 }
 
-func NewRegisterLandlordRequest(u string, username string, emailAddress string) (*http.Request, error) {
-	b, err := json.Marshal(person.RegisterRequest{
-		Username:     username,
+func NewRegisterAccountRequest(u string, emailAddress string) (*http.Request, error) {
+	b, err := json.Marshal(account.RegisterAccountRequest{
 		Password:     "password",
 		FirstName:    "FirstName",
 		LastName:     "LastName",

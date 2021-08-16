@@ -28,7 +28,6 @@ func IsDuplicate(err error) bool {
 		IsDuplicate() bool
 	}
 
-	e := errors.Unwrap(err)
 	var i isDuplicate
-	return errors.As(e, &i) && i.IsDuplicate()
+	return errors.As(err, &i) && i.IsDuplicate()
 }
