@@ -4,10 +4,9 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/pressly/goose"
-
 	_ "github.com/jackc/pgx/v4/stdlib"
 	"github.com/jmoiron/sqlx"
+	"github.com/pressly/goose"
 )
 
 type Postgres struct {

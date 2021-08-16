@@ -22,11 +22,6 @@ func (r *Router) Start(ctx context.Context, port string) error {
 		Handler: r.router,
 	}
 
-	err := srv.ListenAndServe()
-	if err != nil {
-		return fmt.Errorf("unable to start http server. Error: %v", err)
-	}
-
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt, os.Kill)
 
@@ -40,6 +35,11 @@ func (r *Router) Start(ctx context.Context, port string) error {
 			}
 		}
 	}()
+
+	err := srv.ListenAndServe()
+	if err != nil {
+		return fmt.Errorf("unable to start http server. Error: %v", err)
+	}
 
 	return nil
 }
