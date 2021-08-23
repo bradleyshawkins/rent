@@ -46,7 +46,17 @@ func (s *Service) RegisterAccount(emailAddress, password, firstName, lastName st
 	return a.ID, nil
 }
 
-func (s *Service) AddPersonToAccount(accountID uuid.UUID, p *Person) error {
+func (s *Service) AddPersonToAccount(accountID uuid.UUID, emailAddress, password, firstName, lastName string) error {
+	p, err := NewPerson(s.as, emailAddress, password, firstName, lastName)
+	if err != nil {
+		return err
+	}
+
+	err = p.Register()
+	if err != nil {
+		return err
+	}
+
 	a, err := s.as.LoadAccount(accountID)
 	if err != nil {
 		return err

@@ -31,3 +31,12 @@ func IsDuplicate(err error) bool {
 	var i isDuplicate
 	return errors.As(err, &i) && i.IsDuplicate()
 }
+
+func IsNotExists(err error) bool {
+	type isNotExists interface {
+		IsNotExists() bool
+	}
+
+	var i isNotExists
+	return errors.As(err, &i) && i.IsNotExists()
+}
