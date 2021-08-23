@@ -7,7 +7,7 @@ import (
 
 func (p *Postgres) LoadAccount(accountID uuid.UUID) (*account.Account, error) {
 	var status account.AccountStatus
-	err := p.db.QueryRow(`SELECT status_id FROM accounts WHERE account_id = $1`, accountID).Scan(&status)
+	err := p.db.QueryRow(`SELECT status_id FROM account WHERE id = $1`, accountID).Scan(&status)
 	if err != nil {
 		return nil, convertToError(err, "unable to get account")
 	}

@@ -4,7 +4,8 @@ services:
     image: rent:local
     restart: always
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     networks:
       - rent-network
     ports:

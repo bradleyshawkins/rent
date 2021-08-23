@@ -8,7 +8,10 @@ import (
 	"github.com/go-chi/chi"
 )
 
-const personID = "personID"
+const (
+	personID  = "personID"
+	accountID = "accountID"
+)
 
 type Router struct {
 	as *account.Service
@@ -23,7 +26,7 @@ func (p *Router) RegisterEndpoints(m chi.Router) {
 
 	// Account Management
 	m.Post("/accounts/register", p.RegisterAccount)
-	m.Delete("/accounts/{accountID}/cancel", nil)
+	m.Post("/accounts/{accountID}/register", p.RegisterPersonToAccount)
 	m.Get("/accounts/{accountID}/settings", nil)
 	m.Put("/accounts/{accountID}/settings", nil)
 
