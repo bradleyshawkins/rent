@@ -10,6 +10,8 @@ import (
 	"os"
 	"testing"
 
+	uuid "github.com/satori/go.uuid"
+
 	"github.com/bradleyshawkins/rent/rest"
 
 	"github.com/bradleyshawkins/rent"
@@ -35,6 +37,12 @@ func TestRegisterPerson(t *testing.T) {
 		}
 		t.Fatalf("Unexpected status code. StatusCode: %v, Payload: %v", resp.StatusCode, string(b))
 	}
+
+	var personResp person.RegisterPersonResponse
+	err = json.NewDecoder(resp.Body).Decode(&personResp)
+	i.NoErr(err)
+
+	i.True(personResp.ID != (uuid.UUID{}))
 }
 
 func TestRegisterPerson_EmailAddressExists(t *testing.T) {
