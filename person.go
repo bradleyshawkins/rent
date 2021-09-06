@@ -9,9 +9,9 @@ import (
 
 var emailRegex = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
 
-type PersonService interface {
+type PersonStore interface {
 	RegisterPerson(p *Person) error
-	//LoadPerson(id uuid.UUID) (*Person, error)
+	LoadPerson(id uuid.UUID) (*Person, error)
 }
 
 type Person struct {
@@ -43,6 +43,18 @@ func NewPerson(emailAddress, password, firstName, lastName string) (*Person, err
 	return p, p.Validate()
 }
 
+func NewExistingPerson(id uuid.UUID, emailAddress, password, firstName, lastName string, status PersonStatus) (*Person, error) {
+	p := &Person{
+		ID:           id,
+		EmailAddress: emailAddress,
+		Password:     password,
+		FirstName:    firstName,
+		LastName:     lastName,
+		Status:       status,
+	}
+	return p, p.Validate()
+}
+
 func (p Person) Validate() error {
 	if p.ID == (uuid.UUID{}) {
 		return NewError(errors.New("missing id"), WithInvalidFields(InvalidField{
@@ -52,21 +64,21 @@ func (p Person) Validate() error {
 	}
 
 	if p.Password == "" {
-		return NewError(errors.New("missing id"), WithInvalidFields(InvalidField{
+		return NewError(errors.New("missing password"), WithInvalidFields(InvalidField{
 			Field:  "password",
 			Reason: ReasonMissing,
 		}))
 	}
 
 	if p.FirstName == "" {
-		return NewError(errors.New("missing id"), WithInvalidFields(InvalidField{
+		return NewError(errors.New("missing firstName"), WithInvalidFields(InvalidField{
 			Field:  "firstName",
 			Reason: ReasonMissing,
 		}))
 	}
 
 	if p.LastName == "" {
-		return NewError(errors.New("missing id"), WithInvalidFields(InvalidField{
+		return NewError(errors.New("missing lastName"), WithInvalidFields(InvalidField{
 			Field:  "lastName",
 			Reason: ReasonMissing,
 		}))
@@ -81,14 +93,14 @@ func (p Person) Validate() error {
 
 func validateEmailAddress(email string) error {
 	if email == "" {
-		return NewError(errors.New("missing id"), WithInvalidFields(InvalidField{
+		return NewError(errors.New("missing email"), WithInvalidFields(InvalidField{
 			Field:  "emailAddress",
 			Reason: ReasonMissing,
 		}))
 	}
 
 	if !emailRegex.MatchString(email) {
-		return NewError(errors.New("missing id"), WithInvalidFields(InvalidField{
+		return NewError(errors.New("invalid email"), WithInvalidFields(InvalidField{
 			Field:  "emailAddress",
 			Reason: ReasonInvalid,
 		}))

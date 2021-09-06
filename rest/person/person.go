@@ -10,15 +10,14 @@ import (
 )
 
 const (
-	personID  = "personID"
-	accountID = "accountID"
+	personID = "personID"
 )
 
 type Router struct {
-	ps rent.PersonService
+	ps rent.PersonStore
 }
 
-func NewRouter(ps rent.PersonService) *Router {
+func NewRouter(ps rent.PersonStore) *Router {
 	return &Router{ps: ps}
 }
 
@@ -27,5 +26,6 @@ func (p *Router) RegisterEndpoints(m chi.Router) {
 
 	// Person management
 	m.Post("/person/register", rest.ErrorHandler(p.RegisterPerson))
+	m.Get("/person/{personID}", rest.ErrorHandler(p.LoadPerson))
 
 }

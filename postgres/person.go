@@ -1,8 +1,6 @@
 package postgres
 
 import (
-	"database/sql"
-
 	"github.com/bradleyshawkins/rent"
 
 	uuid "github.com/satori/go.uuid"
@@ -22,11 +20,12 @@ func (p *Postgres) RegisterPerson(person *rent.Person) error {
 		}
 	}()
 
-	if err := p.insertPerson(tx, person); err != nil {
+	detailsID, err := insertPersonDetails(tx, person)
+	if err != nil {
 		return err
 	}
 
-	if err := p.insertPersonDetails(tx, person); err != nil {
+	if err := insertPerson(tx, person, detailsID); err != nil {
 		return err
 	}
 
@@ -37,8 +36,12 @@ func (p *Postgres) RegisterPerson(person *rent.Person) error {
 	return nil
 }
 
-func (p *Postgres) insertPerson(tx *sql.Tx, person *rent.Person) error {
-	_, err := tx.Exec("INSERT INTO person(id, email_address, password, status_id) VALUES ($1, $2, $3, $4)", person.ID, person.EmailAddress, person.Password, person.Status)
+func (p *Postgres) LoadPerson(id uuid.UUID) (*rent.Person, error) {
+	return getPersonByID(p.db, id)
+}
+
+func insertPerson(conn dbConn, person *rent.Person, detailsID uuid.UUID) error {
+	_, err := conn.Exec("INSERT INTO person(id, email_address, password, status_id, person_details_id) VALUES ($1, $2, $3, $4, $5)", person.ID, person.EmailAddress, person.Password, person.Status, detailsID)
 	if err != nil {
 		return toRentError(err)
 	}
@@ -46,12 +49,26 @@ func (p *Postgres) insertPerson(tx *sql.Tx, person *rent.Person) error {
 	return err
 }
 
-func (p *Postgres) insertPersonDetails(tx *sql.Tx, person *rent.Person) error {
-	// TODO: Is having a uuid the best idea for a pk for this table?
-	_, err := tx.Exec(`INSERT INTO person_details(id, person_id, first_name, last_name) VALUES ($1, $2, $3, $4)`, uuid.NewV4(), person.ID, person.FirstName, person.LastName)
+func insertPersonDetails(conn dbConn, person *rent.Person) (uuid.UUID, error) {
+	detailsID := uuid.NewV4()
+	_, err := conn.Exec(`INSERT INTO person_details(id, first_name, last_name) VALUES ($1, $2, $3)`, detailsID, person.FirstName, person.LastName)
 	if err != nil {
-		return toRentError(err)
+		return uuid.UUID{}, toRentError(err)
 	}
 
-	return err
+	return detailsID, err
+}
+
+func getPersonByID(conn dbConn, id uuid.UUID) (*rent.Person, error) {
+	var emailAddress, password, firstName, lastName string
+	var statusID rent.PersonStatus
+	err := conn.QueryRow(`SELECT p.email_address, p.password, p.status_id, pd.first_name, pd.last_name
+										FROM person p
+										INNER JOIN person_details pd ON p.person_details_id = pd.id`).Scan(&emailAddress, &password, &statusID,
+		&firstName, &lastName)
+	if err != nil {
+		return nil, toRentError(err)
+	}
+
+	return rent.NewExistingPerson(id, emailAddress, password, firstName, lastName, statusID)
 }
