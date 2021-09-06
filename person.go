@@ -1,4 +1,4 @@
-package account
+package rent
 
 import (
 	"regexp"
@@ -16,8 +16,6 @@ type Person struct {
 	FirstName    string
 	LastName     string
 	Status       PersonStatus
-
-	as accountService
 }
 
 type PersonStatus int
@@ -28,7 +26,7 @@ const (
 	PersonDisabled
 )
 
-func NewPerson(as accountService, emailAddress, password, firstName, lastName string) (*Person, error) {
+func NewPerson(emailAddress, password, firstName, lastName string) (*Person, error) {
 	p := &Person{
 		ID:           uuid.NewV4(),
 		EmailAddress: emailAddress,
@@ -36,18 +34,11 @@ func NewPerson(as accountService, emailAddress, password, firstName, lastName st
 		FirstName:    firstName,
 		LastName:     lastName,
 		Status:       PersonActive,
-
-		as: as,
 	}
 	return p, p.validate()
 }
 
 func (p Person) validate() error {
-
-	if p.as == nil {
-		return types.NewSetupError("accountService", types.SetupNotSet)
-	}
-
 	if p.ID == (uuid.UUID{}) {
 		return types.NewFieldValidationError("id", types.Missing)
 	}
@@ -83,14 +74,14 @@ func validateEmailAddress(email string) error {
 	return nil
 }
 
-func (p *Person) Register() error {
-	if err := p.validate(); err != nil {
-		return err
-	}
-
-	err := p.as.RegisterPerson(p)
-	if err != nil {
-		return err
-	}
-	return nil
-}
+//func (p *Person) Register() error {
+//	if err := p.validate(); err != nil {
+//		return err
+//	}
+//
+//	err := p.as.RegisterPerson(p)
+//	if err != nil {
+//		return err
+//	}
+//	return nil
+//}

@@ -1,12 +1,15 @@
 package account
 
-import uuid "github.com/satori/go.uuid"
+import (
+	"github.com/bradleyshawkins/rent"
+	uuid "github.com/satori/go.uuid"
+)
 
 type accountService interface {
-	LoadAccount(id uuid.UUID) (*Account, error)
-	RegisterAccount(a *Account) error
-	AddToAccount(aID uuid.UUID, p *Person) error
-	RegisterPerson(p *Person) error
+	LoadAccount(id uuid.UUID) (*rent.Account, error)
+	RegisterAccount(a *rent.Account) error
+	AddToAccount(aID uuid.UUID, p *rent.Person) error
+	RegisterPerson(p *rent.Person) error
 }
 
 type Service struct {
@@ -18,12 +21,12 @@ func NewService(as accountService) *Service {
 }
 
 func (s *Service) RegisterAccount(emailAddress, password, firstName, lastName string) (uuid.UUID, error) {
-	a, err := NewAccount(s.as)
+	a, err := rent.NewAccount(s.as)
 	if err != nil {
 		return uuid.UUID{}, err
 	}
 
-	p, err := NewPerson(s.as, emailAddress, password, firstName, lastName)
+	p, err := rent.NewPerson(s.as, emailAddress, password, firstName, lastName)
 	if err != nil {
 		return uuid.UUID{}, err
 	}
@@ -47,7 +50,7 @@ func (s *Service) RegisterAccount(emailAddress, password, firstName, lastName st
 }
 
 func (s *Service) AddPersonToAccount(accountID uuid.UUID, emailAddress, password, firstName, lastName string) error {
-	p, err := NewPerson(s.as, emailAddress, password, firstName, lastName)
+	p, err := rent.NewPerson(s.as, emailAddress, password, firstName, lastName)
 	if err != nil {
 		return err
 	}

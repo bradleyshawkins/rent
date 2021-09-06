@@ -1,4 +1,4 @@
-package account
+package rent
 
 import (
 	"errors"
@@ -17,7 +17,7 @@ func TestNewPerson(t *testing.T) {
 	ln := "lastName"
 	ea := "test.email@test.com"
 
-	l, err := NewPerson(&mock{}, ea, p, fn, ln)
+	l, err := NewPerson(ea, p, fn, ln)
 	i.NoErr(err)
 
 	i.Equal(l.Password, p)
@@ -49,7 +49,7 @@ func TestNewPerson_MissingField(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			i := is.New(t)
-			_, err := NewPerson(&mock{}, tt.emailAddress, tt.password, tt.firstName, tt.lastName)
+			_, err := NewPerson(tt.emailAddress, tt.password, tt.firstName, tt.lastName)
 			i.True(err != nil)
 
 			v := &types.FieldValidationError{}
@@ -76,7 +76,7 @@ func TestNewPerson_InvalidField(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := NewPerson(&mock{}, tt.emailAddress, p, fn, ln)
+			_, err := NewPerson(tt.emailAddress, p, fn, ln)
 			i.True(err != nil)
 
 			v := &types.FieldValidationError{}
@@ -86,40 +86,39 @@ func TestNewPerson_InvalidField(t *testing.T) {
 	}
 }
 
-func TestRegister(t *testing.T) {
-	i := is.New(t)
+//func TestRegister(t *testing.T) {
+//	i := is.New(t)
+//
+//	ea := "test.tester@test.com"
+//	pass := "password"
+//	fn := "firstName"
+//	ln := "lastName"
+//
+//	p, err := NewPerson(m, ea, pass, fn, ln)
+//	i.NoErr(err)
+//
+//	err = p.Register()
+//	i.NoErr(err)
+//
+//	registeredPerson := m.RegisterPersonPersonParam
+//
+//	i.Equal(registeredPerson.EmailAddress, ea)
+//	i.Equal(registeredPerson.Password, pass)
+//	i.Equal(registeredPerson.FirstName, fn)
+//	i.Equal(registeredPerson.LastName, ln)
+//	i.Equal(registeredPerson.Status, PersonActive)
+//}
 
-	ea := "test.tester@test.com"
-	pass := "password"
-	fn := "firstName"
-	ln := "lastName"
-
-	m := &mock{}
-	p, err := NewPerson(m, ea, pass, fn, ln)
-	i.NoErr(err)
-
-	err = p.Register()
-	i.NoErr(err)
-
-	registeredPerson := m.RegisterPersonPersonParam
-
-	i.Equal(registeredPerson.EmailAddress, ea)
-	i.Equal(registeredPerson.Password, pass)
-	i.Equal(registeredPerson.FirstName, fn)
-	i.Equal(registeredPerson.LastName, ln)
-	i.Equal(registeredPerson.Status, PersonActive)
-}
-
-func TestRegister_ReturnsError(t *testing.T) {
-	i := is.New(t)
-
-	m := &mock{
-		RegisterPersonReturnError: errors.New("error registering person"),
-	}
-
-	p, err := NewPerson(m, "test.tester@test.com", "password", "firstName", "lastName")
-	i.NoErr(err)
-
-	err = p.Register()
-	i.True(err != nil)
-}
+//func TestRegister_ReturnsError(t *testing.T) {
+//	i := is.New(t)
+//
+//	m := &account.mock{
+//		RegisterPersonReturnError: errors.New("error registering person"),
+//	}
+//
+//	p, err := NewPerson(m, "test.tester@test.com", "password", "firstName", "lastName")
+//	i.NoErr(err)
+//
+//	err = p.Register()
+//	i.True(err != nil)
+//}
