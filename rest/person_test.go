@@ -1,6 +1,6 @@
 // +build integration
 
-package person_test
+package rest_test
 
 import (
 	"bytes"
@@ -10,14 +10,10 @@ import (
 	"os"
 	"testing"
 
-	uuid "github.com/satori/go.uuid"
-
-	"github.com/bradleyshawkins/rent/rest"
-
 	"github.com/bradleyshawkins/rent"
-	"github.com/bradleyshawkins/rent/rest/person"
-
+	"github.com/bradleyshawkins/rent/rest"
 	"github.com/matryer/is"
+	uuid "github.com/satori/go.uuid"
 )
 
 func TestRegisterPerson(t *testing.T) {
@@ -38,7 +34,7 @@ func TestRegisterPerson(t *testing.T) {
 		t.Fatalf("Unexpected status code. StatusCode: %v, Payload: %v", resp.StatusCode, string(b))
 	}
 
-	var personResp person.RegisterPersonResponse
+	var personResp rest.RegisterPersonResponse
 	err = json.NewDecoder(resp.Body).Decode(&personResp)
 	i.NoErr(err)
 
@@ -102,7 +98,7 @@ func TestRegisterPerson_BadInput(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			i := is.New(t)
-			l := person.RegisterPersonRequest{
+			l := rest.RegisterPersonRequest{
 				Password:     test.password,
 				FirstName:    test.firstName,
 				LastName:     test.lastName,
@@ -134,7 +130,7 @@ func TestRegisterPerson_BadInput(t *testing.T) {
 }
 
 func NewRegisterPersonRequest(u string, emailAddress string) (*http.Request, error) {
-	b, err := json.Marshal(person.RegisterPersonRequest{
+	b, err := json.Marshal(rest.RegisterPersonRequest{
 		Password:     "password",
 		FirstName:    "FirstName",
 		LastName:     "LastName",
@@ -150,4 +146,66 @@ func NewRegisterPersonRequest(u string, emailAddress string) (*http.Request, err
 	}
 
 	return r, nil
+}
+
+func TestLoadPerson(t *testing.T) {
+	i := is.New(t)
+	u := os.Getenv("SERVICE_URL")
+	ea := "loadPerson_register@test.com"
+	fn := "test"
+	ln := "user"
+
+	registerURL := u + "/person/register"
+	registerBytes, err := json.Marshal(rest.RegisterPersonRequest{
+		EmailAddress: ea,
+		Password:     "dummyPassword",
+		FirstName:    fn,
+		LastName:     ln,
+	})
+	i.NoErr(err)
+
+	l, err := http.NewRequest(http.MethodPost, registerURL, bytes.NewReader(registerBytes))
+	i.NoErr(err)
+
+	registerResp, err := http.DefaultClient.Do(l)
+	i.NoErr(err)
+
+	if registerResp.StatusCode != http.StatusCreated {
+		b, err := ioutil.ReadAll(registerResp.Body)
+		if err != nil {
+			t.Fatalf("Unable to read response payload. Error: %v", err)
+		}
+		t.Fatalf("Unexpected status code. StatusCode: %v, Payload: %v", registerResp.StatusCode, string(b))
+	}
+	//
+	var personResp rest.RegisterPersonResponse
+	err = json.NewDecoder(registerResp.Body).Decode(&personResp)
+	i.NoErr(err)
+
+	i.True(personResp.ID != (uuid.UUID{}))
+
+	loadURL := u + "/person/" + personResp.ID.String()
+
+	req, err := http.NewRequest(http.MethodGet, loadURL, http.NoBody)
+	i.NoErr(err)
+
+	resp, err := http.DefaultClient.Do(req)
+	i.NoErr(err)
+
+	if resp.StatusCode != http.StatusOK {
+		b, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			t.Fatalf("Unable to read response payload. Error: %v", err)
+		}
+		t.Fatalf("Unexpected status code. StatusCode: %v, Payload: %v", resp.StatusCode, string(b))
+	}
+
+	var loadResp rest.LoadPersonResponse
+	err = json.NewDecoder(resp.Body).Decode(&loadResp)
+	i.NoErr(err)
+
+	i.Equal(loadResp.ID, personResp.ID)
+	i.Equal(loadResp.EmailAddress, ea)
+	i.Equal(loadResp.FirstName, fn)
+	i.Equal(loadResp.LastName, ln)
 }

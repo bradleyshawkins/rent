@@ -64,7 +64,8 @@ func getPersonByID(conn dbConn, id uuid.UUID) (*rent.Person, error) {
 	var statusID rent.PersonStatus
 	err := conn.QueryRow(`SELECT p.email_address, p.password, p.status_id, pd.first_name, pd.last_name
 										FROM person p
-										INNER JOIN person_details pd ON p.person_details_id = pd.id`).Scan(&emailAddress, &password, &statusID,
+										INNER JOIN person_details pd ON p.person_details_id = pd.id
+										WHERE p.id = $1`, id).Scan(&emailAddress, &password, &statusID,
 		&firstName, &lastName)
 	if err != nil {
 		return nil, toRentError(err)
