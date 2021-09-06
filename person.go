@@ -1,13 +1,18 @@
 package rent
 
 import (
+	"errors"
 	"regexp"
 
-	"github.com/bradleyshawkins/rent/types"
 	uuid "github.com/satori/go.uuid"
 )
 
 var emailRegex = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
+
+type PersonService interface {
+	RegisterPerson(p *Person) error
+	//LoadPerson(id uuid.UUID) (*Person, error)
+}
 
 type Person struct {
 	ID           uuid.UUID
@@ -35,24 +40,36 @@ func NewPerson(emailAddress, password, firstName, lastName string) (*Person, err
 		LastName:     lastName,
 		Status:       PersonActive,
 	}
-	return p, p.validate()
+	return p, p.Validate()
 }
 
-func (p Person) validate() error {
+func (p Person) Validate() error {
 	if p.ID == (uuid.UUID{}) {
-		return types.NewFieldValidationError("id", types.Missing)
+		return NewError(errors.New("missing id"), WithInvalidFields(InvalidField{
+			Field:  "id",
+			Reason: ReasonMissing,
+		}))
 	}
 
 	if p.Password == "" {
-		return types.NewFieldValidationError("password", types.Missing)
+		return NewError(errors.New("missing id"), WithInvalidFields(InvalidField{
+			Field:  "password",
+			Reason: ReasonMissing,
+		}))
 	}
 
 	if p.FirstName == "" {
-		return types.NewFieldValidationError("firstName", types.Missing)
+		return NewError(errors.New("missing id"), WithInvalidFields(InvalidField{
+			Field:  "firstName",
+			Reason: ReasonMissing,
+		}))
 	}
 
 	if p.LastName == "" {
-		return types.NewFieldValidationError("lastName", types.Missing)
+		return NewError(errors.New("missing id"), WithInvalidFields(InvalidField{
+			Field:  "lastName",
+			Reason: ReasonMissing,
+		}))
 	}
 
 	if err := validateEmailAddress(p.EmailAddress); err != nil {
@@ -64,24 +81,18 @@ func (p Person) validate() error {
 
 func validateEmailAddress(email string) error {
 	if email == "" {
-		return types.NewFieldValidationError("emailAddress", types.Missing)
+		return NewError(errors.New("missing id"), WithInvalidFields(InvalidField{
+			Field:  "emailAddress",
+			Reason: ReasonMissing,
+		}))
 	}
 
 	if !emailRegex.MatchString(email) {
-		return types.NewFieldValidationError("emailAddress", types.Invalid)
+		return NewError(errors.New("missing id"), WithInvalidFields(InvalidField{
+			Field:  "emailAddress",
+			Reason: ReasonInvalid,
+		}))
 	}
 
 	return nil
 }
-
-//func (p *Person) Register() error {
-//	if err := p.validate(); err != nil {
-//		return err
-//	}
-//
-//	err := p.as.RegisterPerson(p)
-//	if err != nil {
-//		return err
-//	}
-//	return nil
-//}

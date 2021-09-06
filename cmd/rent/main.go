@@ -6,11 +6,11 @@ import (
 	"log"
 	"os"
 
-	"github.com/bradleyshawkins/rent/account"
+	"github.com/bradleyshawkins/rent/rest/person"
+
 	"github.com/bradleyshawkins/rent/config"
 	"github.com/bradleyshawkins/rent/postgres"
 	"github.com/bradleyshawkins/rent/rest"
-	ra "github.com/bradleyshawkins/rent/rest/account"
 )
 
 func main() {
@@ -29,13 +29,11 @@ func main() {
 		os.Exit(1)
 	}
 
-	log.Println("Creating account service")
-	as := account.NewService(m)
-
-	accountRouter := ra.NewRouter(as)
+	log.Println("Creating person router")
+	pr := person.NewRouter(m)
 
 	log.Println("Registering routes")
-	router := rest.SetupRouter(accountRouter)
+	router := rest.SetupRouter(pr)
 
 	log.Println("Starting router")
 	if err := router.Start(context.Background(), c.Port); err != nil {
