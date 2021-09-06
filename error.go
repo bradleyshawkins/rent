@@ -1,6 +1,9 @@
 package rent
 
-import "net/http"
+import (
+	"fmt"
+	"net/http"
+)
 
 type Error struct {
 	err         error
@@ -119,7 +122,7 @@ func WithMessage(message string) ErrorOption {
 }
 
 func (e *Error) Error() string {
-	return e.err.Error()
+	return fmt.Sprintf("Error: %v, Message: %v", e.err.Error(), e.message)
 }
 
 func (e *Error) Code() Code {
