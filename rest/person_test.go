@@ -121,7 +121,7 @@ func TestRegisterPerson_BadInput(t *testing.T) {
 
 			t.Log(restErr)
 
-			if rent.Code(restErr.Code) == rent.CodeInvalidField {
+			if rent.Code(restErr.Code) != rent.CodeInvalidField {
 				t.Fatalf("unexpected code. Expected: %v, Got: %v", rent.CodeInvalidField, rent.Code(restErr.Code))
 			}
 		})
