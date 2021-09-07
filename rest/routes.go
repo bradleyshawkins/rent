@@ -2,64 +2,54 @@ package rest
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"net/http"
-	"os"
-	"os/signal"
+
+	"github.com/bradleyshawkins/rent"
 
 	"github.com/go-chi/chi"
 )
 
 type Router struct {
 	router *chi.Mux
+	ps     rent.PersonStore
 }
 
-func (r *Router) Start(ctx context.Context, port string) error {
-	log.Println("Starting http router...")
+func NewRouter(ps rent.PersonStore) *Router {
+	log.Println("Creating router")
+	c := chi.NewRouter()
+
+	p := &Router{
+		router: c,
+		ps:     ps,
+	}
+
+	log.Println("Registering person routes")
+	// Person management
+	c.Post("/person/register", ErrorHandler(p.RegisterPerson))
+	c.Get("/person/{personID}", ErrorHandler(p.LoadPerson))
+
+	return p
+}
+
+func (r *Router) Start(ctx context.Context, port string) func(ctx context.Context) error {
 	srv := http.Server{
 		Addr:    ":" + port,
 		Handler: r.router,
 	}
 
-	c := make(chan os.Signal, 1)
-	signal.Notify(c, os.Interrupt, os.Kill)
-
 	go func() {
-		// TODO: validate that this is working as expected
-		for i := range c {
-			log.Println("Shutting down. Signal Interrupt", i)
-			err := srv.Shutdown(ctx)
-			if err != nil {
-				log.Println(fmt.Errorf("error shutting down http server. Error: %v", err))
-			}
+		log.Println("Starting http server ...")
+		err := srv.ListenAndServe()
+		if err != nil {
+			log.Println("Error shutting down server. Error:", err)
 		}
 	}()
 
-	err := srv.ListenAndServe()
-	if err != nil {
-		return fmt.Errorf("unable to start http server. Error: %v", err)
+	return func(ctx context.Context) error {
+		log.Println("Shutting down http server ...")
+		return srv.Shutdown(ctx)
 	}
-
-	return nil
-}
-
-type register interface {
-	RegisterEndpoints(m chi.Router)
-}
-
-func SetupRouter(routers ...register) *Router {
-	log.Println("Creating http router and registering endpoints...")
-	c := chi.NewRouter()
-	r := &Router{
-		router: c,
-	}
-
-	for _, router := range routers {
-		router.RegisterEndpoints(r.router)
-	}
-
-	return r
 }
 
 // person

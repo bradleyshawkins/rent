@@ -1,6 +1,7 @@
 package postgres
 
 import (
+	"database/sql"
 	"fmt"
 	"log"
 
@@ -8,6 +9,12 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/pressly/goose"
 )
+
+type dbConn interface {
+	Exec(query string, args ...interface{}) (sql.Result, error)
+	QueryRow(query string, args ...interface{}) *sql.Row
+	Query(query string, args ...interface{}) (*sql.Rows, error)
+}
 
 type Postgres struct {
 	db *sqlx.DB
