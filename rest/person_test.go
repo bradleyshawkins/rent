@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
-	"os"
 	"testing"
 
 	"github.com/bradleyshawkins/rent"
@@ -18,7 +17,7 @@ import (
 
 func TestRegisterPerson(t *testing.T) {
 	i := is.New(t)
-	u := os.Getenv("SERVICE_URL")
+	u := getServiceURL()
 	u += "/person/register"
 	l, err := NewRegisterPersonRequest(u, "registerPerson_register@test.com")
 	i.NoErr(err)
@@ -44,7 +43,7 @@ func TestRegisterPerson(t *testing.T) {
 func TestRegisterPerson_EmailAddressExists(t *testing.T) {
 	i := is.New(t)
 
-	u := os.Getenv("SERVICE_URL")
+	u := getServiceURL()
 	u += "/person/register"
 	r, err := NewRegisterPersonRequest(u, "registerPersonUsernameExists@test.com")
 	i.NoErr(err)
@@ -79,7 +78,7 @@ func TestRegisterPerson_EmailAddressExists(t *testing.T) {
 }
 
 func TestRegisterPerson_BadInput(t *testing.T) {
-	u := os.Getenv("SERVICE_URL")
+	u := getServiceURL()
 	u += "/person/register"
 	tests := []struct {
 		name         string
@@ -150,7 +149,7 @@ func NewRegisterPersonRequest(u string, emailAddress string) (*http.Request, err
 
 func TestLoadPerson(t *testing.T) {
 	i := is.New(t)
-	u := os.Getenv("SERVICE_URL")
+	u := getServiceURL()
 	ea := "loadPerson_register@test.com"
 	fn := "test"
 	ln := "user"

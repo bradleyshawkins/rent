@@ -25,6 +25,7 @@ func NewRouter(ps rent.PersonStore) *Router {
 	}
 
 	log.Println("Registering person routes")
+	c.Get("/health", p.Health)
 	// Person management
 	c.Post("/person/register", ErrorHandler(p.RegisterPerson))
 	c.Get("/person/{personID}", ErrorHandler(p.LoadPerson))

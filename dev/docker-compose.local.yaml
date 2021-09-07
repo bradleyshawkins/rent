@@ -14,15 +14,8 @@ services:
       DATABASE_URL: postgresql://postgres:password@postgres:5432/rent
       MIGRATION_PATH: /app/schema
       PORT: 8080
-  rent-test:
-    image: rent-test:local
-    restart: always
-    environment:
-      SERVICE_URL: http://rent:8080
-    depends_on:
-      - rent
-    networks:
-      - rent-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
   postgres:
     networks:
       - rent-network
