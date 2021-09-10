@@ -7,7 +7,8 @@ test.unit:
 	go test -tags=unit ./...
 test.integration:
 	go test -tags=integration ./...
-test.integration.env: service.container.build env.start test.integration env.stop
+test.integration.env:
+	./dev/integration.sh
 
 
 service.container.build:

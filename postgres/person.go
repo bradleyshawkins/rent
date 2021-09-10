@@ -6,7 +6,7 @@ import (
 	uuid "github.com/satori/go.uuid"
 )
 
-//
+// RegisterPerson inserts the person into the database, creates an account and associates the person with the account
 func (p *Postgres) RegisterPerson(person *rent.Person) error {
 	tx, err := p.db.Begin()
 	if err != nil {
@@ -20,12 +20,22 @@ func (p *Postgres) RegisterPerson(person *rent.Person) error {
 		}
 	}()
 
-	detailsID, err := insertPersonDetails(tx, person)
+	if err := insertPerson(tx, person); err != nil {
+		return err
+	}
+
+	err = insertPersonDetails(tx, person)
 	if err != nil {
 		return err
 	}
 
-	if err := insertPerson(tx, person, detailsID); err != nil {
+	id, err := registerAccount(tx)
+	if err != nil {
+		return err
+	}
+
+	err = addToAccount(tx, id, person)
+	if err != nil {
 		return err
 	}
 
@@ -40,8 +50,8 @@ func (p *Postgres) LoadPerson(id uuid.UUID) (*rent.Person, error) {
 	return getPersonByID(p.db, id)
 }
 
-func insertPerson(conn dbConn, person *rent.Person, detailsID uuid.UUID) error {
-	_, err := conn.Exec("INSERT INTO person(id, email_address, password, status_id, person_details_id) VALUES ($1, $2, $3, $4, $5)", person.ID, person.EmailAddress, person.Password, person.Status, detailsID)
+func insertPerson(conn dbConn, person *rent.Person) error {
+	_, err := conn.Exec("INSERT INTO person(id, email_address, password, status_id) VALUES ($1, $2, $3, $4)", person.ID, person.EmailAddress, person.Password, person.Status)
 	if err != nil {
 		return toRentError(err)
 	}
@@ -49,14 +59,14 @@ func insertPerson(conn dbConn, person *rent.Person, detailsID uuid.UUID) error {
 	return err
 }
 
-func insertPersonDetails(conn dbConn, person *rent.Person) (uuid.UUID, error) {
+func insertPersonDetails(conn dbConn, person *rent.Person) error {
 	detailsID := uuid.NewV4()
-	_, err := conn.Exec(`INSERT INTO person_details(id, first_name, last_name) VALUES ($1, $2, $3)`, detailsID, person.FirstName, person.LastName)
+	_, err := conn.Exec(`INSERT INTO person_details(id, person_id, first_name, last_name) VALUES ($1, $2, $3, $4)`, detailsID, person.ID, person.FirstName, person.LastName)
 	if err != nil {
-		return uuid.UUID{}, toRentError(err)
+		return toRentError(err)
 	}
 
-	return detailsID, err
+	return err
 }
 
 func getPersonByID(conn dbConn, id uuid.UUID) (*rent.Person, error) {
@@ -64,7 +74,7 @@ func getPersonByID(conn dbConn, id uuid.UUID) (*rent.Person, error) {
 	var statusID rent.PersonStatus
 	err := conn.QueryRow(`SELECT p.email_address, p.password, p.status_id, pd.first_name, pd.last_name
 										FROM person p
-										INNER JOIN person_details pd ON p.person_details_id = pd.id
+										INNER JOIN person_details pd ON p.id = pd.person_id
 										WHERE p.id = $1`, id).Scan(&emailAddress, &password, &statusID,
 		&firstName, &lastName)
 	if err != nil {
