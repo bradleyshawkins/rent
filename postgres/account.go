@@ -5,13 +5,12 @@ import (
 	uuid "github.com/satori/go.uuid"
 )
 
-func registerAccount(db dbConn) (uuid.UUID, error) {
-	a := rent.NewAccount()
+func registerAccount(db dbConn, a *rent.Account) error {
 	_, err := db.Exec(`INSERT INTO account(id, status) VALUES ($1, $2)`, a.ID, a.Status)
 	if err != nil {
-		return uuid.UUID{}, toRentError(err)
+		return toRentError(err)
 	}
-	return a.ID, nil
+	return nil
 }
 
 func addToAccount(db dbConn, aID uuid.UUID, per *rent.Person) error {

@@ -10,7 +10,7 @@ import (
 var emailRegex = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
 
 type PersonStore interface {
-	RegisterPerson(p *Person) error
+	RegisterPerson(a *Account, p *Person) error
 	LoadPerson(id uuid.UUID) (*Person, error)
 }
 

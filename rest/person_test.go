@@ -5,6 +5,8 @@ package rest_test
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"testing"
@@ -17,27 +19,12 @@ import (
 
 func TestRegisterPerson(t *testing.T) {
 	i := is.New(t)
-	u := getServiceURL()
-	u += "/person/register"
-	l, err := NewRegisterPersonRequest(u, "registerPerson_register@test.com")
+
+	accountID, personID, err := registerPerson("registerPerson_register@test.com")
 	i.NoErr(err)
 
-	resp, err := http.DefaultClient.Do(l)
-	i.NoErr(err)
-
-	if resp.StatusCode != http.StatusCreated {
-		b, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			t.Fatalf("Unable to read response payload. Error: %v", err)
-		}
-		t.Fatalf("Unexpected status code. StatusCode: %v, Payload: %v", resp.StatusCode, string(b))
-	}
-
-	var personResp rest.RegisterPersonResponse
-	err = json.NewDecoder(resp.Body).Decode(&personResp)
-	i.NoErr(err)
-
-	i.True(personResp.ID != (uuid.UUID{}))
+	i.True(accountID != (uuid.UUID{}))
+	i.True(personID != (uuid.UUID{}))
 }
 
 func TestRegisterPerson_EmailAddressExists(t *testing.T) {
@@ -45,16 +32,9 @@ func TestRegisterPerson_EmailAddressExists(t *testing.T) {
 
 	u := getServiceURL()
 	u += "/person/register"
-	r, err := NewRegisterPersonRequest(u, "registerPersonUsernameExists@test.com")
-	i.NoErr(err)
 
-	resp, err := http.DefaultClient.Do(r)
+	_, _, err := registerPerson("registerPersonUsernameExists@test.com")
 	i.NoErr(err)
-
-	if resp.StatusCode != http.StatusCreated {
-		b, _ := ioutil.ReadAll(resp.Body)
-		t.Fatalf("expected a created status code. StatusCode: %v, Body: %v", resp.StatusCode, string(b))
-	}
 
 	r2, err := NewRegisterPersonRequest(u, "registerPersonUsernameExists@test.com")
 	i.NoErr(err)
@@ -128,6 +108,33 @@ func TestRegisterPerson_BadInput(t *testing.T) {
 	}
 }
 
+func registerPerson(emailAddress string) (uuid.UUID, uuid.UUID, error) {
+	u := getServiceURL()
+	rpu := u + "/person/register"
+	l, err := NewRegisterPersonRequest(rpu, emailAddress)
+	if err != nil {
+		return uuid.UUID{}, uuid.UUID{}, err
+	}
+
+	registerPersonResp, err := http.DefaultClient.Do(l)
+	if err != nil {
+		return uuid.UUID{}, uuid.UUID{}, err
+	}
+
+	if registerPersonResp.StatusCode != http.StatusCreated {
+		b, _ := ioutil.ReadAll(registerPersonResp.Body)
+		e := fmt.Sprintf("Unexpected status code. StatusCode: %v, Payload: %v", registerPersonResp.StatusCode, string(b))
+		return uuid.UUID{}, uuid.UUID{}, errors.New(e)
+	}
+
+	var personResp rest.RegisterPersonResponse
+	err = json.NewDecoder(registerPersonResp.Body).Decode(&personResp)
+	if err != nil {
+		return uuid.UUID{}, uuid.UUID{}, err
+	}
+	return personResp.AccountID, personResp.PersonID, nil
+}
+
 func NewRegisterPersonRequest(u string, emailAddress string) (*http.Request, error) {
 	b, err := json.Marshal(rest.RegisterPersonRequest{
 		Password:     "password",
@@ -181,9 +188,9 @@ func TestLoadPerson(t *testing.T) {
 	err = json.NewDecoder(registerResp.Body).Decode(&personResp)
 	i.NoErr(err)
 
-	i.True(personResp.ID != (uuid.UUID{}))
+	i.True(personResp.PersonID != (uuid.UUID{}))
 
-	loadURL := u + "/person/" + personResp.ID.String()
+	loadURL := u + "/person/" + personResp.PersonID.String()
 
 	req, err := http.NewRequest(http.MethodGet, loadURL, http.NoBody)
 	i.NoErr(err)
@@ -203,7 +210,7 @@ func TestLoadPerson(t *testing.T) {
 	err = json.NewDecoder(resp.Body).Decode(&loadResp)
 	i.NoErr(err)
 
-	i.Equal(loadResp.ID, personResp.ID)
+	i.Equal(loadResp.ID, personResp.PersonID)
 	i.Equal(loadResp.EmailAddress, ea)
 	i.Equal(loadResp.FirstName, fn)
 	i.Equal(loadResp.LastName, ln)

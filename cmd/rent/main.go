@@ -30,7 +30,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	router := rest.NewRouter(m)
+	router := rest.NewRouter(m, m)
 
 	stop := router.Start(context.Background(), c.Port)
 	if err != nil {
