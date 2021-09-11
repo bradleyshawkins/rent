@@ -35,25 +35,28 @@ const (
 	CodeInternal
 	CodeDuplicate
 	CodeNotExists
+	CodeRequiredEntityNotExists
 )
 
 const (
-	UnauthenticatedMsg = "User is not authenticated"
-	InvalidFieldMsg    = "Invalid field was provided"
-	InternalMsg        = "Unexpected internal error occurred"
-	DuplicateMsg       = "Entity already exists"
-	InvalidPayloadMsg  = "Unable to deserialize payload"
-	NotExistsMsg       = "Entity does not exist"
+	UnauthenticatedMsg         = "User is not authenticated"
+	InvalidFieldMsg            = "Invalid field was provided"
+	InternalMsg                = "Unexpected internal error occurred"
+	DuplicateMsg               = "Entity already exists"
+	InvalidPayloadMsg          = "Unable to deserialize payload"
+	NotExistsMsg               = "Entity does not exist"
+	RequiredEntityNotExistsMsg = "A required entity has not been created"
 )
 
 var codeHttpStatusCodeMap = map[Code]int{
-	CodeUnknown:         http.StatusInternalServerError,
-	CodeUnauthenticated: http.StatusUnauthorized,
-	CodeInvalidField:    http.StatusBadRequest,
-	CodeInternal:        http.StatusInternalServerError,
-	CodeDuplicate:       http.StatusConflict,
-	CodeInvalidPayload:  http.StatusBadRequest,
-	CodeNotExists:       http.StatusNotFound,
+	CodeUnknown:                 http.StatusInternalServerError,
+	CodeUnauthenticated:         http.StatusUnauthorized,
+	CodeInvalidField:            http.StatusBadRequest,
+	CodeInternal:                http.StatusInternalServerError,
+	CodeDuplicate:               http.StatusConflict,
+	CodeInvalidPayload:          http.StatusBadRequest,
+	CodeNotExists:               http.StatusNotFound,
+	CodeRequiredEntityNotExists: http.StatusConflict,
 }
 
 func NewError(err error, options ...ErrorOption) *Error {
@@ -112,6 +115,13 @@ func WithInvalidPayload() ErrorOption {
 	return func(e *Error) {
 		e.code = CodeInvalidPayload
 		e.userMessage = InvalidPayloadMsg
+	}
+}
+
+func WithRequiredEntityNotExist() ErrorOption {
+	return func(e *Error) {
+		e.code = CodeRequiredEntityNotExists
+		e.userMessage = RequiredEntityNotExistsMsg
 	}
 }
 

@@ -7,7 +7,11 @@ import (
 )
 
 // RegisterPerson inserts the person into the database, creates an account and associates the person with the account
-func (p *Postgres) RegisterPerson(person *rent.Person) error {
+func (p *Postgres) RegisterPerson(a *rent.Account, person *rent.Person) error {
+	if err := person.Validate(); err != nil {
+		return err
+	}
+
 	tx, err := p.db.Begin()
 	if err != nil {
 		return rent.NewError(err, rent.WithInternal(), rent.WithMessage("unable to begin transaction to insert person"))
@@ -29,12 +33,12 @@ func (p *Postgres) RegisterPerson(person *rent.Person) error {
 		return err
 	}
 
-	id, err := registerAccount(tx)
+	err = registerAccount(tx, a)
 	if err != nil {
 		return err
 	}
 
-	err = addToAccount(tx, id, person)
+	err = addToAccount(tx, a.ID, person)
 	if err != nil {
 		return err
 	}

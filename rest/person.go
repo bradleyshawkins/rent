@@ -13,7 +13,8 @@ import (
 )
 
 const (
-	personID = "personID"
+	accountID = "accountID"
+	personID  = "personID"
 )
 
 type RegisterPersonRequest struct {
@@ -24,7 +25,8 @@ type RegisterPersonRequest struct {
 }
 
 type RegisterPersonResponse struct {
-	ID uuid.UUID `json:"id"`
+	AccountID uuid.UUID `json:"accountID"`
+	PersonID  uuid.UUID `json:"personID"`
 }
 
 func (l *Router) RegisterPerson(w http.ResponseWriter, r *http.Request) error {
@@ -39,13 +41,15 @@ func (l *Router) RegisterPerson(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	err = l.ps.RegisterPerson(p)
+	a := rent.NewAccount()
+
+	err = l.ps.RegisterPerson(a, p)
 	if err != nil {
 		return err
 	}
 
 	w.WriteHeader(http.StatusCreated)
-	err = json.NewEncoder(w).Encode(RegisterPersonResponse{ID: p.ID})
+	err = json.NewEncoder(w).Encode(RegisterPersonResponse{PersonID: p.ID, AccountID: a.ID})
 	if err != nil {
 		return rent.NewError(err, rent.WithInternal(), rent.WithMessage("unable to serialize response"))
 	}

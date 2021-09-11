@@ -11,17 +11,19 @@ import (
 )
 
 type Router struct {
-	router *chi.Mux
-	ps     rent.PersonStore
+	router    *chi.Mux
+	ps        rent.PersonStore
+	propStore rent.PropertyStore
 }
 
-func NewRouter(ps rent.PersonStore) *Router {
+func NewRouter(ps rent.PersonStore, propStore rent.PropertyStore) *Router {
 	log.Println("Creating router")
 	c := chi.NewRouter()
 
 	p := &Router{
-		router: c,
-		ps:     ps,
+		router:    c,
+		ps:        ps,
+		propStore: propStore,
 	}
 
 	log.Println("Registering person routes")
@@ -29,6 +31,8 @@ func NewRouter(ps rent.PersonStore) *Router {
 	// Person management
 	c.Post("/person/register", ErrorHandler(p.RegisterPerson))
 	c.Get("/person/{personID}", ErrorHandler(p.LoadPerson))
+
+	c.Post("/account/{accountID}/property", ErrorHandler(p.RegisterProperty))
 
 	return p
 }
