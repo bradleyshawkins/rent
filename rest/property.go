@@ -12,6 +12,10 @@ import (
 	"github.com/bradleyshawkins/rent"
 )
 
+const (
+	propertyID = "propertyID"
+)
+
 type RegisterPropertyRequest struct {
 	Name    string  `json:"name"`
 	Address Address `json:"address"`
@@ -72,5 +76,24 @@ func (l *Router) RegisterProperty(w http.ResponseWriter, r *http.Request) error 
 	if err != nil {
 		return rent.NewError(err, rent.WithInternal(), rent.WithMessage("unable to serialize response"))
 	}
+	return nil
+}
+
+func (l *Router) RemoveProperty(w http.ResponseWriter, r *http.Request) error {
+	aID, err := getURLParamAsUUID(r, accountID)
+	if err != nil {
+		return err
+	}
+
+	pID, err := getURLParamAsUUID(r, propertyID)
+	if err != nil {
+		return err
+	}
+
+	err = l.propStore.RemoveProperty(aID, pID)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }

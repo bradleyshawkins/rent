@@ -8,6 +8,7 @@ import (
 
 type PropertyStore interface {
 	RegisterProperty(accountID uuid.UUID, p *Property) error
+	RemoveProperty(accountID uuid.UUID, propertyID uuid.UUID) error
 }
 
 type Property struct {
@@ -18,6 +19,7 @@ type Property struct {
 }
 
 type Address struct {
+	ID      uuid.UUID
 	Street1 string
 	Street2 string
 	City    string
@@ -49,6 +51,17 @@ func NewProperty(name string, address *Address) (*Property, error) {
 	return p, p.Validate()
 }
 
+func NewExistingProperty(id uuid.UUID, name string, status PropertyStatus, address *Address) (*Property, error) {
+	p := &Property{
+		ID:      id,
+		Name:    name,
+		Status:  status,
+		Address: address,
+	}
+
+	return p, p.Validate()
+}
+
 func (p *Property) Validate() error {
 	if p.ID == (uuid.UUID{}) {
 		return NewError(errors.New("property must have an ID"), WithInvalidFields(InvalidField{Field: "ID", Reason: ReasonMissing}))
@@ -70,6 +83,7 @@ func (p *Property) Validate() error {
 
 func NewAddress(st1, st2, c, st, z string) (*Address, error) {
 	a := &Address{
+		ID:      uuid.NewV4(),
 		Street1: st1,
 		Street2: st2,
 		City:    c,
@@ -79,7 +93,24 @@ func NewAddress(st1, st2, c, st, z string) (*Address, error) {
 	return a, a.Validate()
 }
 
+func NewExistingAddress(id uuid.UUID, st1, st2, c, st, z string) (*Address, error) {
+	a := &Address{
+		ID:      id,
+		Street1: st1,
+		Street2: st2,
+		City:    c,
+		State:   st,
+		Zipcode: z,
+	}
+
+	return a, a.Validate()
+}
+
 func (a *Address) Validate() error {
+	if a.ID == (uuid.UUID{}) {
+		return NewError(errors.New("address must have an id"), WithInvalidFields(InvalidField{Field: "id", Reason: ReasonMissing}))
+	}
+
 	if a.Street1 == "" {
 		return NewError(errors.New("address must have street1"), WithInvalidFields(InvalidField{Field: "street1", Reason: ReasonMissing}))
 	}
@@ -92,5 +123,17 @@ func (a *Address) Validate() error {
 	if a.Zipcode == "" {
 		return NewError(errors.New("address must have zipcode"), WithInvalidFields(InvalidField{Field: "zipcode", Reason: ReasonMissing}))
 	}
+	return nil
+}
+
+func (p *Property) IsActive() error {
+	if p.Status == PropertyDisabled {
+		return NewError(errors.New("property is not active"), WithEntityDisabled())
+	}
+	return nil
+}
+
+func (p *Property) Disable() error {
+	p.Status = PropertyDisabled
 	return nil
 }
