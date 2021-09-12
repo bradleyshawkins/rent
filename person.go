@@ -109,8 +109,11 @@ func validateEmailAddress(email string) error {
 	return nil
 }
 
-func (p *Person) IsActive() bool {
-	return p.Status != PersonDisabled
+func (p *Person) IsActive() error {
+	if p.Status == PersonDisabled {
+		return NewError(errors.New("person is not active"), WithEntityDisabled())
+	}
+	return nil
 }
 
 func (p *Person) Disable() {
