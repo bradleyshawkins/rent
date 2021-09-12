@@ -13,8 +13,6 @@ test.integration.env:
 
 service.container.build:
 	docker build . -t rent:local
-service.container.run: service.container.build
-	docker-compose -f docker-compose.yaml up -d
 
 env.start: service.container.build
 	docker-compose -f docker-compose.yaml -f dev/docker-compose.local.yaml up -d --force-recreate -V
