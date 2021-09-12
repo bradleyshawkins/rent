@@ -97,6 +97,6 @@ func TestDisablePerson(t *testing.T) {
 	i.NoErr(err)
 
 	p.Disable()
-
-	i.NoErr(p.IsActive())
+	err = p.IsActive()
+	i.True(err != nil)
 }
