@@ -5,9 +5,8 @@ CREATE TABLE person_status(
     title VARCHAR(20) NOT NULL
 );
 
-INSERT INTO person_status(id, title) VALUES (1, 'active');
-INSERT INTO person_status(id, title) VALUES (2, 'inactive');
-INSERT INTO person_status(id, title) VALUES (3, 'disabled');
+INSERT INTO person_status(id, title) VALUES (1, 'disabled');
+INSERT INTO person_status(id, title) VALUES (2, 'active');
 
 
 CREATE TABLE person (

@@ -5,9 +5,7 @@ package rest_test
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"testing"
 
@@ -41,10 +39,9 @@ func TestRegisterPerson_EmailAddressExists(t *testing.T) {
 
 	resp2, err := http.DefaultClient.Do(r2)
 	i.NoErr(err)
-	if resp2.StatusCode != http.StatusConflict {
-		b, _ := ioutil.ReadAll(resp2.Body)
-		t.Fatalf("expected a conflict status code. StatusCode: %v, Body: %v", resp2.StatusCode, string(b))
-	}
+
+	err = didReceiveStatusCode(resp2, http.StatusConflict)
+	i.NoErr(err)
 
 	var restErr rest.Error
 	err = json.NewDecoder(resp2.Body).Decode(&restErr)
@@ -121,10 +118,9 @@ func registerPerson(emailAddress string) (uuid.UUID, uuid.UUID, error) {
 		return uuid.UUID{}, uuid.UUID{}, err
 	}
 
-	if registerPersonResp.StatusCode != http.StatusCreated {
-		b, _ := ioutil.ReadAll(registerPersonResp.Body)
-		e := fmt.Sprintf("Unexpected status code. StatusCode: %v, Payload: %v", registerPersonResp.StatusCode, string(b))
-		return uuid.UUID{}, uuid.UUID{}, errors.New(e)
+	err = didReceiveStatusCode(registerPersonResp, http.StatusCreated)
+	if err != nil {
+		return uuid.UUID{}, uuid.UUID{}, err
 	}
 
 	var personResp rest.RegisterPersonResponse
@@ -176,42 +172,144 @@ func TestLoadPerson(t *testing.T) {
 	registerResp, err := http.DefaultClient.Do(l)
 	i.NoErr(err)
 
-	if registerResp.StatusCode != http.StatusCreated {
-		b, err := ioutil.ReadAll(registerResp.Body)
-		if err != nil {
-			t.Fatalf("Unable to read response payload. Error: %v", err)
-		}
-		t.Fatalf("Unexpected status code. StatusCode: %v, Payload: %v", registerResp.StatusCode, string(b))
-	}
-	//
+	err = didReceiveStatusCode(registerResp, http.StatusCreated)
+	i.NoErr(err)
+
 	var personResp rest.RegisterPersonResponse
 	err = json.NewDecoder(registerResp.Body).Decode(&personResp)
 	i.NoErr(err)
 
 	i.True(personResp.PersonID != (uuid.UUID{}))
 
-	loadURL := u + "/person/" + personResp.PersonID.String()
-
-	req, err := http.NewRequest(http.MethodGet, loadURL, http.NoBody)
+	loadPersonResp, err := loadPerson(personResp.PersonID)
 	i.NoErr(err)
+
+	i.True(loadPersonResp != nil)
+
+	i.Equal(loadPersonResp.ID, personResp.PersonID)
+	i.Equal(loadPersonResp.EmailAddress, ea)
+	i.Equal(loadPersonResp.FirstName, fn)
+	i.Equal(loadPersonResp.LastName, ln)
+}
+
+func loadPerson(pID uuid.UUID) (*rest.LoadPersonResponse, error) {
+	u := getServiceURL() + "/person/" + pID.String()
+
+	req, err := http.NewRequest(http.MethodGet, u, http.NoBody)
+	if err != nil {
+		return nil, err
+	}
 
 	resp, err := http.DefaultClient.Do(req)
-	i.NoErr(err)
+	if err != nil {
+		return nil, err
+	}
 
-	if resp.StatusCode != http.StatusOK {
-		b, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			t.Fatalf("Unable to read response payload. Error: %v", err)
-		}
-		t.Fatalf("Unexpected status code. StatusCode: %v, Payload: %v", resp.StatusCode, string(b))
+	err = didReceiveStatusCode(resp, http.StatusOK)
+	if err != nil {
+		return nil, err
 	}
 
 	var loadResp rest.LoadPersonResponse
 	err = json.NewDecoder(resp.Body).Decode(&loadResp)
+	if err != nil {
+		return nil, err
+	}
+
+	return &loadResp, nil
+}
+
+func TestCancelPerson(t *testing.T) {
+	i := is.New(t)
+	accountID, personID, err := registerPerson("registerPerson_cancel@test.com")
 	i.NoErr(err)
 
-	i.Equal(loadResp.ID, personResp.PersonID)
-	i.Equal(loadResp.EmailAddress, ea)
-	i.Equal(loadResp.FirstName, fn)
-	i.Equal(loadResp.LastName, ln)
+	u := getServiceURL() + fmt.Sprintf("/account/%s/person/%s", accountID.String(), personID.String())
+	r, err := http.NewRequest(http.MethodDelete, u, http.NoBody)
+	i.NoErr(err)
+
+	resp, err := http.DefaultClient.Do(r)
+	i.NoErr(err)
+	defer resp.Body.Close()
+
+	err = didReceiveStatusCode(resp, http.StatusOK)
+	i.NoErr(err)
+
+	getURL := getServiceURL() + "/person/" + personID.String()
+	req, err := http.NewRequest(http.MethodGet, getURL, http.NoBody)
+	i.NoErr(err)
+
+	loadResp, err := http.DefaultClient.Do(req)
+	i.NoErr(err)
+	defer loadResp.Body.Close()
+
+	i.NoErr(didReceiveStatusCode(loadResp, http.StatusNotFound))
+}
+
+func TestCancelPerson_BadInput(t *testing.T) {
+	tests := []struct {
+		name       string
+		accountID  string
+		personID   string
+		statusCode int
+		code       int
+	}{
+		{
+			name:       "Invalid AccountID",
+			accountID:  "1234",
+			personID:   uuid.NewV4().String(),
+			statusCode: http.StatusBadRequest,
+			code:       int(rent.CodeInvalidField),
+		},
+		{
+			name:       "Invalid PersonID",
+			accountID:  uuid.NewV4().String(),
+			personID:   "1234",
+			statusCode: http.StatusBadRequest,
+			code:       int(rent.CodeInvalidField),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			i := is.New(t)
+
+			u := getServiceURL() + fmt.Sprintf("/account/%s/person/%s", tt.accountID, tt.personID)
+			r, err := http.NewRequest(http.MethodDelete, u, http.NoBody)
+			i.NoErr(err)
+
+			resp, err := http.DefaultClient.Do(r)
+			i.NoErr(err)
+			defer resp.Body.Close()
+
+			err = didReceiveStatusCode(resp, tt.statusCode)
+			i.NoErr(err)
+
+			var restErr rest.Error
+			err = json.NewDecoder(resp.Body).Decode(&restErr)
+			i.NoErr(err)
+
+			i.True(restErr.Code == tt.code)
+		})
+	}
+}
+
+func TestCancelPerson_PersonNotExist(t *testing.T) {
+	i := is.New(t)
+	u := getServiceURL() + fmt.Sprintf("/account/%s/person/%s", uuid.NewV4().String(), uuid.NewV4().String())
+	r, err := http.NewRequest(http.MethodDelete, u, http.NoBody)
+	i.NoErr(err)
+
+	resp, err := http.DefaultClient.Do(r)
+	i.NoErr(err)
+	defer resp.Body.Close()
+
+	err = didReceiveStatusCode(resp, http.StatusNotFound)
+	i.NoErr(err)
+
+	var restErr rest.Error
+	err = json.NewDecoder(resp.Body).Decode(&restErr)
+	i.NoErr(err)
+
+	i.True(restErr.Code == int(rent.CodeNotExists))
 }
