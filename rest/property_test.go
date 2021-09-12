@@ -175,6 +175,105 @@ func TestRegisterProperty_BadAccountID(t *testing.T) {
 	}
 }
 
+func TestRemoveProperty(t *testing.T) {
+	i := is.New(t)
+
+	accountID, propertyID, err := registerProperty("testRemoveProperty@test.com")
+	i.NoErr(err)
+
+	u := getServiceURL() + fmt.Sprintf("/account/%s/property/%s", accountID, propertyID)
+	req, err := http.NewRequest(http.MethodDelete, u, http.NoBody)
+	i.NoErr(err)
+
+	resp, err := http.DefaultClient.Do(req)
+	i.NoErr(err)
+
+	err = didReceiveStatusCode(resp, http.StatusOK)
+	i.NoErr(err)
+}
+
+func TestRemoveProperty_PropertyNotExist(t *testing.T) {
+	i := is.New(t)
+	u := getServiceURL() + fmt.Sprintf("/account/%s/property/%s", uuid.NewV4(), uuid.NewV4())
+	req, err := http.NewRequest(http.MethodDelete, u, http.NoBody)
+	i.NoErr(err)
+
+	resp, err := http.DefaultClient.Do(req)
+	i.NoErr(err)
+
+	err = didReceiveStatusCode(resp, http.StatusNotFound)
+	i.NoErr(err)
+}
+
+func TestRemoveProerty_BadURLParams(t *testing.T) {
+	tests := []struct {
+		name       string
+		accountID  string
+		propertyID string
+	}{
+		{
+			name:       "Non-UUID AccountID",
+			accountID:  "1234",
+			propertyID: uuid.NewV4().String(),
+		},
+		{
+			name:       "Non-UUID PersonID",
+			accountID:  uuid.NewV4().String(),
+			propertyID: "1234",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			i := is.New(t)
+			u := getServiceURL() + fmt.Sprintf("/account/%s/property/%s", tt.accountID, tt.propertyID)
+			req, err := http.NewRequest(http.MethodDelete, u, http.NoBody)
+			i.NoErr(err)
+
+			resp, err := http.DefaultClient.Do(req)
+			i.NoErr(err)
+
+			err = didReceiveStatusCode(resp, http.StatusBadRequest)
+			i.NoErr(err)
+
+			var propResp rest.Error
+			err = json.NewDecoder(resp.Body).Decode(&propResp)
+			i.NoErr(err)
+
+			i.Equal(propResp.Code, int(rent.CodeInvalidField))
+		})
+	}
+}
+
+func registerProperty(emailAddress string) (uuid.UUID, uuid.UUID, error) {
+	accountID, _, err := registerPerson(emailAddress)
+	if err != nil {
+		return uuid.UUID{}, uuid.UUID{}, err
+	}
+	u := getServiceURL() + fmt.Sprintf("/account/%s/property", accountID)
+	req, err := newRegisterPropertyRequest(u)
+	if err != nil {
+		return uuid.UUID{}, uuid.UUID{}, err
+	}
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return uuid.UUID{}, uuid.UUID{}, err
+	}
+
+	err = didReceiveStatusCode(resp, http.StatusCreated)
+	if err != nil {
+		return uuid.UUID{}, uuid.UUID{}, err
+	}
+
+	var propResp rest.RegisterPropertyResponse
+	err = json.NewDecoder(resp.Body).Decode(&propResp)
+	if err != nil {
+		return uuid.UUID{}, uuid.UUID{}, err
+	}
+	return accountID, propResp.PropertyID, nil
+}
+
 func newRegisterPropertyRequest(u string) (*http.Request, error) {
 	b, err := json.Marshal(rest.RegisterPropertyRequest{
 		Name: "Test Register Property",
