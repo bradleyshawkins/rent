@@ -2,10 +2,7 @@ package rest
 
 import (
 	"encoding/json"
-	"errors"
 	"net/http"
-
-	"github.com/go-chi/chi"
 
 	uuid "github.com/satori/go.uuid"
 
@@ -66,20 +63,9 @@ type LoadPersonResponse struct {
 }
 
 func (p *Router) LoadPerson(w http.ResponseWriter, r *http.Request) error {
-	personID := chi.URLParam(r, personID)
-	if personID == "" {
-		return rent.NewError(errors.New("personID is required"), rent.WithInvalidFields(rent.InvalidField{
-			Field:  "personID",
-			Reason: rent.ReasonMissing,
-		}), rent.WithMessage("personID is a required field"))
-	}
-
-	pID, err := uuid.FromString(personID)
+	pID, err := getURLParamAsUUID(r, personID)
 	if err != nil {
-		return rent.NewError(err, rent.WithInvalidFields(rent.InvalidField{
-			Field:  "personID",
-			Reason: rent.ReasonInvalid,
-		}), rent.WithMessage("personID must be a UUID"))
+		return err
 	}
 
 	person, err := p.ps.LoadPerson(pID)
@@ -97,5 +83,24 @@ func (p *Router) LoadPerson(w http.ResponseWriter, r *http.Request) error {
 	if err != nil {
 		return rent.NewError(err, rent.WithInternal(), rent.WithMessage("unable to serialize get person response"))
 	}
+	return nil
+}
+
+func (p *Router) CancelPerson(w http.ResponseWriter, r *http.Request) error {
+	aID, err := getURLParamAsUUID(r, accountID)
+	if err != nil {
+		return err
+	}
+
+	pID, err := getURLParamAsUUID(r, personID)
+	if err != nil {
+		return err
+	}
+
+	err = p.ps.CancelPerson(aID, pID)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }

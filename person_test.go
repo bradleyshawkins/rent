@@ -90,3 +90,13 @@ func TestNewPerson_InvalidField(t *testing.T) {
 		})
 	}
 }
+
+func TestDisablePerson(t *testing.T) {
+	i := is.New(t)
+	p, err := rent.NewPerson("test.email@test.com", "password", "firstName", "lastName")
+	i.NoErr(err)
+
+	p.Disable()
+	err = p.IsActive()
+	i.True(err != nil)
+}

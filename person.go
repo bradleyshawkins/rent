@@ -12,6 +12,7 @@ var emailRegex = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z
 type PersonStore interface {
 	RegisterPerson(a *Account, p *Person) error
 	LoadPerson(id uuid.UUID) (*Person, error)
+	CancelPerson(accountID, personID uuid.UUID) error
 }
 
 type Person struct {
@@ -26,9 +27,8 @@ type Person struct {
 type PersonStatus int
 
 const (
-	PersonActive PersonStatus = iota + 1
-	PersonInactive
-	PersonDisabled
+	PersonDisabled PersonStatus = iota + 1
+	PersonActive
 )
 
 func NewPerson(emailAddress, password, firstName, lastName string) (*Person, error) {
@@ -107,4 +107,15 @@ func validateEmailAddress(email string) error {
 	}
 
 	return nil
+}
+
+func (p *Person) IsActive() error {
+	if p.Status == PersonDisabled {
+		return NewError(errors.New("person is not active"), WithEntityDisabled())
+	}
+	return nil
+}
+
+func (p *Person) Disable() {
+	p.Status = PersonDisabled
 }

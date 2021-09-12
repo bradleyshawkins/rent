@@ -36,6 +36,7 @@ const (
 	CodeDuplicate
 	CodeNotExists
 	CodeRequiredEntityNotExists
+	CodeDisabled
 )
 
 const (
@@ -46,6 +47,7 @@ const (
 	InvalidPayloadMsg          = "Unable to deserialize payload"
 	NotExistsMsg               = "Entity does not exist"
 	RequiredEntityNotExistsMsg = "A required entity has not been created"
+	DisabledMsg                = "Entity has been disabled"
 )
 
 var codeHttpStatusCodeMap = map[Code]int{
@@ -57,6 +59,7 @@ var codeHttpStatusCodeMap = map[Code]int{
 	CodeInvalidPayload:          http.StatusBadRequest,
 	CodeNotExists:               http.StatusNotFound,
 	CodeRequiredEntityNotExists: http.StatusConflict,
+	CodeDisabled:                http.StatusNotFound,
 }
 
 func NewError(err error, options ...ErrorOption) *Error {
@@ -128,6 +131,13 @@ func WithRequiredEntityNotExist() ErrorOption {
 func WithMessage(message string) ErrorOption {
 	return func(e *Error) {
 		e.message = message
+	}
+}
+
+func WithEntityDisabled() ErrorOption {
+	return func(e *Error) {
+		e.code = CodeDisabled
+		e.userMessage = DisabledMsg
 	}
 }
 

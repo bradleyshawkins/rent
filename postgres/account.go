@@ -20,3 +20,11 @@ func addToAccount(db dbConn, aID uuid.UUID, per *rent.Person) error {
 	}
 	return nil
 }
+
+func removeFromAccount(db dbConn, aID uuid.UUID, pID uuid.UUID) error {
+	_, err := db.Exec(`DELETE FROM membership WHERE account_id = $1 AND person_id = $2`, aID, pID)
+	if err != nil {
+		return toRentError(err)
+	}
+	return nil
+}

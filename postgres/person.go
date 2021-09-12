@@ -17,12 +17,7 @@ func (p *Postgres) RegisterPerson(a *rent.Account, person *rent.Person) error {
 		return rent.NewError(err, rent.WithInternal(), rent.WithMessage("unable to begin transaction to insert person"))
 	}
 
-	defer func() {
-		err = tx.Rollback()
-		if err != nil {
-			err = rent.NewError(err, rent.WithInternal(), rent.WithMessage("unable to rollback transaction for inserting person"))
-		}
-	}()
+	defer tx.Rollback()
 
 	if err := insertPerson(tx, person); err != nil {
 		return err
@@ -51,7 +46,45 @@ func (p *Postgres) RegisterPerson(a *rent.Account, person *rent.Person) error {
 }
 
 func (p *Postgres) LoadPerson(id uuid.UUID) (*rent.Person, error) {
-	return getPersonByID(p.db, id)
+	person, err := getPersonByID(p.db, id)
+	if err != nil {
+		return nil, err
+	}
+
+	return person, person.IsActive()
+}
+
+func (p *Postgres) CancelPerson(accountID, personID uuid.UUID) error {
+	tx, err := p.db.Begin()
+	if err != nil {
+		return rent.NewError(err, rent.WithInternal(), rent.WithMessage("unable to begin transaction to insert person"))
+	}
+
+	defer tx.Rollback()
+
+	person, err := getPersonByID(tx, personID)
+	if err != nil {
+		return err
+	}
+
+	person.Disable()
+
+	err = updatePersonStatus(tx, personID, person.Status)
+	if err != nil {
+		return err
+	}
+
+	err = removeFromAccount(tx, accountID, personID)
+	if err != nil {
+		return err
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		err = rent.NewError(err, rent.WithInternal(), rent.WithMessage("unable to commit transaction for canceling person"))
+	}
+
+	return nil
 }
 
 func insertPerson(conn dbConn, person *rent.Person) error {
@@ -86,4 +119,13 @@ func getPersonByID(conn dbConn, id uuid.UUID) (*rent.Person, error) {
 	}
 
 	return rent.NewExistingPerson(id, emailAddress, password, firstName, lastName, statusID)
+}
+
+func updatePersonStatus(conn dbConn, id uuid.UUID, status rent.PersonStatus) error {
+	_, err := conn.Exec(`UPDATE person SET status_id = $1 WHERE id = $2`, status, id)
+	if err != nil {
+		return toRentError(err)
+	}
+
+	return nil
 }
