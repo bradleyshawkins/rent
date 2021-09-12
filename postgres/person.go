@@ -1,8 +1,6 @@
 package postgres
 
 import (
-	"fmt"
-
 	"github.com/bradleyshawkins/rent"
 
 	uuid "github.com/satori/go.uuid"
@@ -124,16 +122,10 @@ func getPersonByID(conn dbConn, id uuid.UUID) (*rent.Person, error) {
 }
 
 func updatePersonStatus(conn dbConn, id uuid.UUID, status rent.PersonStatus) error {
-	res, err := conn.Exec(`UPDATE person SET status_id = $1 WHERE id = $2`, status, id)
+	_, err := conn.Exec(`UPDATE person SET status_id = $1 WHERE id = $2`, status, id)
 	if err != nil {
 		return toRentError(err)
 	}
 
-	num, err := res.RowsAffected()
-	if err != nil {
-
-	}
-
-	fmt.Println(num)
 	return nil
 }
