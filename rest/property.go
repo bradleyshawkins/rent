@@ -79,6 +79,43 @@ func (l *Router) RegisterProperty(w http.ResponseWriter, r *http.Request) error 
 	return nil
 }
 
+type LoadPropertyResponse struct {
+	ID      uuid.UUID
+	Name    string
+	Address Address
+}
+
+func (l *Router) LoadProperty(w http.ResponseWriter, r *http.Request) error {
+	aID, err := getURLParamAsUUID(r, accountID)
+	if err != nil {
+		return err
+	}
+
+	pID, err := getURLParamAsUUID(r, propertyID)
+	if err != nil {
+		return err
+	}
+
+	prop, err := l.propStore.LoadProperty(aID, pID)
+	if err != nil {
+		return err
+	}
+
+	err = json.NewEncoder(w).Encode(LoadPropertyResponse{
+		ID:   prop.ID,
+		Name: prop.Name,
+		Address: Address{
+			Street1: prop.Address.Street1,
+			Street2: prop.Address.Street2,
+			City:    prop.Address.City,
+			State:   prop.Address.State,
+			Zipcode: prop.Address.Zipcode,
+		},
+	})
+
+	return nil
+}
+
 func (l *Router) RemoveProperty(w http.ResponseWriter, r *http.Request) error {
 	aID, err := getURLParamAsUUID(r, accountID)
 	if err != nil {

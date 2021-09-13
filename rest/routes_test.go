@@ -1,6 +1,8 @@
 package rest_test
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -13,6 +15,19 @@ func getServiceURL() string {
 		u = "http://127.0.0.1:8080"
 	}
 	return u
+}
+
+func newRequest(method string, u string, payload interface{}) (*http.Request, error) {
+	b, err := json.Marshal(payload)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(method, u, bytes.NewReader(b))
+	if err != nil {
+		return nil, err
+	}
+	return req, nil
 }
 
 func didReceiveStatusCode(resp *http.Response, expected int) error {

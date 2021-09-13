@@ -74,6 +74,14 @@ func (p *Postgres) RemoveProperty(accountID, propertyID uuid.UUID) error {
 	return nil
 }
 
+func (p *Postgres) LoadProperty(accountID uuid.UUID, propertyID uuid.UUID) (*rent.Property, error) {
+	prop, err := loadProperty(p.db, accountID, propertyID)
+	if err != nil {
+		return nil, err
+	}
+	return prop, nil
+}
+
 func createProperty(db dbConn, accountID uuid.UUID, prop *rent.Property) error {
 	_, err := db.Exec(`INSERT INTO property(id, account_id, name, property_status_id) VALUES ($1, $2, $3, $4)`, prop.ID, accountID, prop.Name, prop.Status)
 	if err != nil {

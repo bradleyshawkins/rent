@@ -38,6 +38,7 @@ func NewRouter(ps rent.PersonStore, propStore rent.PropertyStore) *Router {
 
 	c.Post("/account/{accountID}/property", ErrorHandler(p.RegisterProperty))
 	c.Delete("/account/{accountID}/property/{propertyID}", ErrorHandler(p.RemoveProperty))
+	c.Get("/account/{accountID}/property/{propertyID}", ErrorHandler(p.LoadProperty))
 
 	return p
 }

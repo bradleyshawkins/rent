@@ -8,6 +8,7 @@ import (
 
 type PropertyStore interface {
 	RegisterProperty(accountID uuid.UUID, p *Property) error
+	LoadProperty(accountID uuid.UUID, propertyID uuid.UUID) (*Property, error)
 	RemoveProperty(accountID uuid.UUID, propertyID uuid.UUID) error
 }
 
