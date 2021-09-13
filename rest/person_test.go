@@ -18,7 +18,7 @@ import (
 func TestRegisterPerson(t *testing.T) {
 	i := is.New(t)
 
-	accountID, personID, err := registerPerson("registerPerson_register@test.com")
+	accountID, personID, err := registerPerson(newDefaultRegisterPersonRequest("registerPerson_register@test.com"))
 	i.NoErr(err)
 
 	i.True(accountID != (uuid.UUID{}))
@@ -31,7 +31,7 @@ func TestRegisterPerson_EmailAddressExists(t *testing.T) {
 	u := getServiceURL()
 	u += "/person/register"
 
-	_, _, err := registerPerson("registerPersonUsernameExists@test.com")
+	_, _, err := registerPerson(newDefaultRegisterPersonRequest("registerPersonUsernameExists@test.com"))
 	i.NoErr(err)
 
 	r2, err := NewRegisterPersonRequest(u, "registerPersonUsernameExists@test.com")
@@ -105,32 +105,6 @@ func TestRegisterPerson_BadInput(t *testing.T) {
 	}
 }
 
-func registerPerson(emailAddress string) (uuid.UUID, uuid.UUID, error) {
-	u := getServiceURL()
-	rpu := u + "/person/register"
-	l, err := NewRegisterPersonRequest(rpu, emailAddress)
-	if err != nil {
-		return uuid.UUID{}, uuid.UUID{}, err
-	}
-
-	registerPersonResp, err := http.DefaultClient.Do(l)
-	if err != nil {
-		return uuid.UUID{}, uuid.UUID{}, err
-	}
-
-	err = didReceiveStatusCode(registerPersonResp, http.StatusCreated)
-	if err != nil {
-		return uuid.UUID{}, uuid.UUID{}, err
-	}
-
-	var personResp rest.RegisterPersonResponse
-	err = json.NewDecoder(registerPersonResp.Body).Decode(&personResp)
-	if err != nil {
-		return uuid.UUID{}, uuid.UUID{}, err
-	}
-	return personResp.AccountID, personResp.PersonID, nil
-}
-
 func NewRegisterPersonRequest(u string, emailAddress string) (*http.Request, error) {
 	b, err := json.Marshal(rest.RegisterPersonRequest{
 		Password:     "password",
@@ -192,36 +166,9 @@ func TestLoadPerson(t *testing.T) {
 	i.Equal(loadPersonResp.LastName, ln)
 }
 
-func loadPerson(pID uuid.UUID) (*rest.LoadPersonResponse, error) {
-	u := getServiceURL() + "/person/" + pID.String()
-
-	req, err := http.NewRequest(http.MethodGet, u, http.NoBody)
-	if err != nil {
-		return nil, err
-	}
-
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return nil, err
-	}
-
-	err = didReceiveStatusCode(resp, http.StatusOK)
-	if err != nil {
-		return nil, err
-	}
-
-	var loadResp rest.LoadPersonResponse
-	err = json.NewDecoder(resp.Body).Decode(&loadResp)
-	if err != nil {
-		return nil, err
-	}
-
-	return &loadResp, nil
-}
-
 func TestCancelPerson(t *testing.T) {
 	i := is.New(t)
-	accountID, personID, err := registerPerson("registerPerson_cancel@test.com")
+	accountID, personID, err := registerPerson(newDefaultRegisterPersonRequest("registerPerson_cancel@test.com"))
 	i.NoErr(err)
 
 	u := getServiceURL() + fmt.Sprintf("/account/%s/person/%s", accountID.String(), personID.String())
@@ -312,4 +259,69 @@ func TestCancelPerson_PersonNotExist(t *testing.T) {
 	i.NoErr(err)
 
 	i.True(restErr.Code == int(rent.CodeNotExists))
+}
+
+func registerPerson(p *rest.RegisterPersonRequest) (uuid.UUID, uuid.UUID, error) {
+	req, err := newRegisterPersonRestRequest(p)
+	if err != nil {
+		return uuid.UUID{}, uuid.UUID{}, err
+	}
+
+	registerPersonResp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return uuid.UUID{}, uuid.UUID{}, err
+	}
+
+	err = didReceiveStatusCode(registerPersonResp, http.StatusCreated)
+	if err != nil {
+		return uuid.UUID{}, uuid.UUID{}, err
+	}
+
+	var personResp rest.RegisterPersonResponse
+	err = json.NewDecoder(registerPersonResp.Body).Decode(&personResp)
+	if err != nil {
+		return uuid.UUID{}, uuid.UUID{}, err
+	}
+	return personResp.AccountID, personResp.PersonID, nil
+}
+
+func loadPerson(pID uuid.UUID) (*rest.LoadPersonResponse, error) {
+	u := getServiceURL() + "/person/" + pID.String()
+
+	req, err := http.NewRequest(http.MethodGet, u, http.NoBody)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	err = didReceiveStatusCode(resp, http.StatusOK)
+	if err != nil {
+		return nil, err
+	}
+
+	var loadResp rest.LoadPersonResponse
+	err = json.NewDecoder(resp.Body).Decode(&loadResp)
+	if err != nil {
+		return nil, err
+	}
+
+	return &loadResp, nil
+}
+
+func newRegisterPersonRestRequest(r *rest.RegisterPersonRequest) (*http.Request, error) {
+	u := getServiceURL() + "/person/register"
+	return newRequest(http.MethodPost, u, r)
+}
+
+func newDefaultRegisterPersonRequest(ea string) *rest.RegisterPersonRequest {
+	return &rest.RegisterPersonRequest{
+		EmailAddress: ea,
+		Password:     "password",
+		FirstName:    "firstName",
+		LastName:     "lastName",
+	}
 }
