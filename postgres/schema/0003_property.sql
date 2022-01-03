@@ -1,26 +1,18 @@
 -- +goose Up
 
-CREATE TABLE property_status(
-    id INT NOT NULL PRIMARY KEY,
-    value TEXT NOT NULL
-);
-
-INSERT INTO property_status(id, value) VALUES (1, 'disabled');
-INSERT INTO property_status(id, value) VALUES (2, 'vacant');
-INSERT INTO property_status(id, value) VALUES (3, 'occupied');
-
 CREATE TABLE property(
     id UUID NOT NULL PRIMARY KEY,
     account_id UUID NOT NULL REFERENCES account(id),
-    property_status_id INT NOT NULL REFERENCES property_status(id),
+    property_status TEXT NOT NULL,
     name TEXT NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     modified_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE INDEX property_property_status_idx ON property(property_status);
+
 CREATE TRIGGER update_property_modified_at_column BEFORE INSERT OR UPDATE ON property FOR EACH ROW EXECUTE FUNCTION update_modified_at_column();
 
---  TODO Should an address be bound to an account?
 CREATE TABLE address(
     id UUID NOT NULL PRIMARY KEY,
     street_1 TEXT NOT NULL,
@@ -47,4 +39,3 @@ DROP TRIGGER update_property_modified_at_column ON property;
 DROP TABLE property_address;
 DROP TABLE address;
 DROP TABLE property;
-DROP TABLE property_status;
