@@ -1,3 +1,4 @@
+//go:build integration
 // +build integration
 
 package rest_test
@@ -150,116 +151,117 @@ func TestRegisterProperty_BadAccountID(t *testing.T) {
 	}
 }
 
-func TestLoadProperty(t *testing.T) {
-	i := is.New(t)
-	name := "name"
-	street1 := "street1"
-	street2 := "street2"
-	city := "city"
-	state := "state"
-	zipcode := "zipcode"
-
-	prop := &rest.RegisterPropertyRequest{
-		Name: name,
-		Address: rest.Address{
-			Street1: street1,
-			Street2: street2,
-			City:    city,
-			State:   state,
-			Zipcode: zipcode,
-		},
-	}
-
-	accountID, propertyID, err := registerPersonAndProperty("testLoadProperty@test.com", prop)
-	i.NoErr(err)
-
-	u := getServiceURL() + fmt.Sprintf("/account/%s/property/%s", accountID, propertyID)
-	req, err := newRequest(http.MethodGet, u, http.NoBody)
-	i.NoErr(err)
-
-	resp, err := http.DefaultClient.Do(req)
-	i.NoErr(err)
-
-	var loadResp rest.LoadPropertyResponse
-	err = json.NewDecoder(resp.Body).Decode(&loadResp)
-	i.NoErr(err)
-
-	i.True(loadResp.ID != (uuid.UUID{}))
-	i.Equal(loadResp.Name, name)
-	i.Equal(loadResp.Address.Street1, street1)
-	i.Equal(loadResp.Address.Street2, street2)
-	i.Equal(loadResp.Address.City, city)
-	i.Equal(loadResp.Address.State, state)
-	i.Equal(loadResp.Address.Zipcode, zipcode)
-}
-
-func TestRemoveProperty(t *testing.T) {
-	i := is.New(t)
-
-	accountID, propertyID, err := registerPersonAndProperty("testRemoveProperty@test.com", newDefaultRegisterPropertyRequest())
-	i.NoErr(err)
-
-	req, err := newRemovePropertyRestRequest(accountID, propertyID)
-	i.NoErr(err)
-
-	resp, err := http.DefaultClient.Do(req)
-	i.NoErr(err)
-
-	err = didReceiveStatusCode(resp, http.StatusOK)
-	i.NoErr(err)
-}
-
-func TestRemoveProperty_PropertyNotExist(t *testing.T) {
-	i := is.New(t)
-	req, err := newRemovePropertyRestRequest(uuid.NewV4(), uuid.NewV4())
-	i.NoErr(err)
-
-	resp, err := http.DefaultClient.Do(req)
-	i.NoErr(err)
-
-	err = didReceiveStatusCode(resp, http.StatusNotFound)
-	i.NoErr(err)
-}
-
-func TestRemoveProperty_BadURLParams(t *testing.T) {
-	tests := []struct {
-		name       string
-		accountID  string
-		propertyID string
-	}{
-		{
-			name:       "Non-UUID AccountID",
-			accountID:  "1234",
-			propertyID: uuid.NewV4().String(),
-		},
-		{
-			name:       "Non-UUID PersonID",
-			accountID:  uuid.NewV4().String(),
-			propertyID: "1234",
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			i := is.New(t)
-			u := getServiceURL() + fmt.Sprintf("/account/%s/property/%s", tt.accountID, tt.propertyID)
-			req, err := http.NewRequest(http.MethodDelete, u, http.NoBody)
-			i.NoErr(err)
-
-			resp, err := http.DefaultClient.Do(req)
-			i.NoErr(err)
-
-			err = didReceiveStatusCode(resp, http.StatusBadRequest)
-			i.NoErr(err)
-
-			var propResp rest.Error
-			err = json.NewDecoder(resp.Body).Decode(&propResp)
-			i.NoErr(err)
-
-			i.Equal(propResp.Code, int(rent.CodeInvalidField))
-		})
-	}
-}
+//
+//func TestLoadProperty(t *testing.T) {
+//	i := is.New(t)
+//	name := "name"
+//	street1 := "street1"
+//	street2 := "street2"
+//	city := "city"
+//	state := "state"
+//	zipcode := "zipcode"
+//
+//	prop := &rest.RegisterPropertyRequest{
+//		Name: name,
+//		Address: rest.Address{
+//			Street1: street1,
+//			Street2: street2,
+//			City:    city,
+//			State:   state,
+//			Zipcode: zipcode,
+//		},
+//	}
+//
+//	accountID, propertyID, err := registerPersonAndProperty("testLoadProperty@test.com", prop)
+//	i.NoErr(err)
+//
+//	u := getServiceURL() + fmt.Sprintf("/account/%s/property/%s", accountID, propertyID)
+//	req, err := newRequest(http.MethodGet, u, http.NoBody)
+//	i.NoErr(err)
+//
+//	resp, err := http.DefaultClient.Do(req)
+//	i.NoErr(err)
+//
+//	var loadResp rest.LoadPropertyResponse
+//	err = json.NewDecoder(resp.Body).Decode(&loadResp)
+//	i.NoErr(err)
+//
+//	i.True(loadResp.ID != (uuid.UUID{}))
+//	i.Equal(loadResp.Name, name)
+//	i.Equal(loadResp.Address.Street1, street1)
+//	i.Equal(loadResp.Address.Street2, street2)
+//	i.Equal(loadResp.Address.City, city)
+//	i.Equal(loadResp.Address.State, state)
+//	i.Equal(loadResp.Address.Zipcode, zipcode)
+//}
+//
+//func TestRemoveProperty(t *testing.T) {
+//	i := is.New(t)
+//
+//	accountID, propertyID, err := registerPersonAndProperty("testRemoveProperty@test.com", newDefaultRegisterPropertyRequest())
+//	i.NoErr(err)
+//
+//	req, err := newRemovePropertyRestRequest(accountID, propertyID)
+//	i.NoErr(err)
+//
+//	resp, err := http.DefaultClient.Do(req)
+//	i.NoErr(err)
+//
+//	err = didReceiveStatusCode(resp, http.StatusOK)
+//	i.NoErr(err)
+//}
+//
+//func TestRemoveProperty_PropertyNotExist(t *testing.T) {
+//	i := is.New(t)
+//	req, err := newRemovePropertyRestRequest(uuid.NewV4(), uuid.NewV4())
+//	i.NoErr(err)
+//
+//	resp, err := http.DefaultClient.Do(req)
+//	i.NoErr(err)
+//
+//	err = didReceiveStatusCode(resp, http.StatusNotFound)
+//	i.NoErr(err)
+//}
+//
+//func TestRemoveProperty_BadURLParams(t *testing.T) {
+//	tests := []struct {
+//		name       string
+//		accountID  string
+//		propertyID string
+//	}{
+//		{
+//			name:       "Non-UUID AccountID",
+//			accountID:  "1234",
+//			propertyID: uuid.NewV4().String(),
+//		},
+//		{
+//			name:       "Non-UUID PersonID",
+//			accountID:  uuid.NewV4().String(),
+//			propertyID: "1234",
+//		},
+//	}
+//
+//	for _, tt := range tests {
+//		t.Run(tt.name, func(t *testing.T) {
+//			i := is.New(t)
+//			u := getServiceURL() + fmt.Sprintf("/account/%s/property/%s", tt.accountID, tt.propertyID)
+//			req, err := http.NewRequest(http.MethodDelete, u, http.NoBody)
+//			i.NoErr(err)
+//
+//			resp, err := http.DefaultClient.Do(req)
+//			i.NoErr(err)
+//
+//			err = didReceiveStatusCode(resp, http.StatusBadRequest)
+//			i.NoErr(err)
+//
+//			var propResp rest.Error
+//			err = json.NewDecoder(resp.Body).Decode(&propResp)
+//			i.NoErr(err)
+//
+//			i.Equal(propResp.Code, int(rent.CodeInvalidField))
+//		})
+//	}
+//}
 
 func registerPersonAndProperty(emailAddress string, prop *rest.RegisterPropertyRequest) (uuid.UUID, uuid.UUID, error) {
 	accountID, _, err := registerPerson(newDefaultRegisterPersonRequest(emailAddress))
@@ -299,32 +301,32 @@ func registerProperty(accountID uuid.UUID, prop *rest.RegisterPropertyRequest) (
 	return propResp.PropertyID, nil
 }
 
-func loadProperty(accountID, propertyID uuid.UUID) (*rest.LoadPropertyResponse, error) {
-	u := getServiceURL() + fmt.Sprintf("/account/%s/property/%s", accountID, propertyID)
-
-	req, err := http.NewRequest(http.MethodGet, u, http.NoBody)
-	if err != nil {
-		return nil, err
-	}
-
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return nil, err
-	}
-
-	err = didReceiveStatusCode(resp, http.StatusOK)
-	if err != nil {
-		return nil, err
-	}
-
-	var loadResp rest.LoadPropertyResponse
-	err = json.NewDecoder(resp.Body).Decode(&loadResp)
-	if err != nil {
-		return nil, err
-	}
-
-	return &loadResp, nil
-}
+//func loadProperty(accountID, propertyID uuid.UUID) (*rest.LoadPropertyResponse, error) {
+//	u := getServiceURL() + fmt.Sprintf("/account/%s/property/%s", accountID, propertyID)
+//
+//	req, err := http.NewRequest(http.MethodGet, u, http.NoBody)
+//	if err != nil {
+//		return nil, err
+//	}
+//
+//	resp, err := http.DefaultClient.Do(req)
+//	if err != nil {
+//		return nil, err
+//	}
+//
+//	err = didReceiveStatusCode(resp, http.StatusOK)
+//	if err != nil {
+//		return nil, err
+//	}
+//
+//	var loadResp rest.LoadPropertyResponse
+//	err = json.NewDecoder(resp.Body).Decode(&loadResp)
+//	if err != nil {
+//		return nil, err
+//	}
+//
+//	return &loadResp, nil
+//}
 
 func newDefaultRegisterPropertyRequest() *rest.RegisterPropertyRequest {
 	return &rest.RegisterPropertyRequest{

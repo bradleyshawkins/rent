@@ -1,17 +1,8 @@
 -- +goose Up
 
-CREATE TABLE account_status(
-    id INT NOT NULL PRIMARY KEY,
-    value TEXT NOT NULL
-);
-
-INSERT INTO account_status(id, value) VALUES (1, 'active');
-INSERT INTO account_status(id, value) VALUES (2, 'disabled');
-INSERT INTO account_status(id, value) VALUES (3, 'canceled');
-
 CREATE TABLE account(
     id UUID NOT NULL PRIMARY KEY,
-    status INT NOT NULL REFERENCES account_status(id),
+    status TEXT NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     modified_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
@@ -45,4 +36,3 @@ DROP TRIGGER update_account_modified_at_column ON account;
 DROP TABLE membership;
 DROP TABLE role;
 DROP TABLE account;
-DROP TABLE account_status;

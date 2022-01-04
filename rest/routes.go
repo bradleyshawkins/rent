@@ -6,6 +6,10 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/bradleyshawkins/rent/location"
+
+	"github.com/bradleyshawkins/rent/identity"
+
 	uuid "github.com/satori/go.uuid"
 
 	"github.com/bradleyshawkins/rent"
@@ -14,31 +18,32 @@ import (
 )
 
 type Router struct {
-	router    *chi.Mux
-	ps        rent.PersonStore
-	propStore rent.PropertyStore
+	router          *chi.Mux
+	registrar       *identity.Registrar
+	propertyCreator *location.PropertyCreator
 }
 
-func NewRouter(ps rent.PersonStore, propStore rent.PropertyStore) *Router {
+func NewRouter(registrar *identity.Registrar, propertyCreator *location.PropertyCreator) *Router {
 	log.Println("Creating router")
 	c := chi.NewRouter()
 
 	p := &Router{
-		router:    c,
-		ps:        ps,
-		propStore: propStore,
+		router:          c,
+		registrar:       registrar,
+		propertyCreator: propertyCreator,
 	}
 
-	log.Println("Registering person routes")
+	log.Println("Registering routes")
 	c.Get("/health", p.Health)
 	// Person management
 	c.Post("/person/register", ErrorHandler(p.RegisterPerson))
-	c.Get("/person/{personID}", ErrorHandler(p.LoadPerson))
-	c.Delete("/account/{accountID}/person/{personID}", ErrorHandler(p.CancelPerson))
-
-	c.Post("/account/{accountID}/property", ErrorHandler(p.RegisterProperty))
-	c.Delete("/account/{accountID}/property/{propertyID}", ErrorHandler(p.RemoveProperty))
-	c.Get("/account/{accountID}/property/{propertyID}", ErrorHandler(p.LoadProperty))
+	c.Post("/accounts/{accountID}/person", ErrorHandler(p.RegisterPersonToAccount))
+	//c.Get("/person/{personID}", ErrorHandler(p.LoadPerson))
+	//c.Delete("/account/{accountID}/person/{personID}", ErrorHandler(p.CancelPerson))
+	//
+	c.Post("/account/{accountID}/property", ErrorHandler(p.CreateProperty))
+	//c.Delete("/account/{accountID}/property/{propertyID}", ErrorHandler(p.RemoveProperty))
+	//c.Get("/account/{accountID}/property/{propertyID}", ErrorHandler(p.LoadProperty))
 
 	return p
 }

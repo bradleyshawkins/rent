@@ -8,6 +8,10 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/bradleyshawkins/rent/location"
+
+	"github.com/bradleyshawkins/rent/identity"
+
 	"github.com/bradleyshawkins/rent/config"
 	"github.com/bradleyshawkins/rent/postgres"
 	"github.com/bradleyshawkins/rent/rest"
@@ -24,18 +28,27 @@ func main() {
 	}
 
 	log.Println("Initializing database connection")
-	m, err := postgres.New(c.ConnectionString, c.MigrationPath)
+	db, err := postgres.NewDatabase(c.ConnectionString)
 	if err != nil {
-		log.Printf("unable to get database connection. Error: %v\n", err)
+		log.Println("unable to connect to database. Error:", err)
 		os.Exit(1)
 	}
 
-	router := rest.NewRouter(m, m)
+	err = db.Migrate(c.MigrationPath)
+	if err != nil {
+		log.Println("unable to migrate database. Error:", err)
+		os.Exit(2)
+	}
+
+	personRegistrationService := identity.NewRegistrar(db)
+	propertyCreator := location.NewCreator(db)
+
+	router := rest.NewRouter(personRegistrationService, propertyCreator)
 
 	stop := router.Start(context.Background(), c.Port)
 	if err != nil {
 		log.Println("unable to start router. Error:", err)
-		os.Exit(2)
+		os.Exit(3)
 	}
 
 	log.Println("Ready for traffic")
