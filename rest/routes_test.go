@@ -4,10 +4,35 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/bradleyshawkins/rent/identity"
+	"github.com/bradleyshawkins/rent/location"
+	"github.com/bradleyshawkins/rent/postgres"
+	"github.com/bradleyshawkins/rent/rest"
 	"io/ioutil"
 	"net/http"
 	"os"
+	"testing"
 )
+
+var (
+	router *rest.Router
+)
+
+func TestMain(m *testing.M) {
+	// Create Database
+	db, err := postgres.NewDatabase("postgresql://postgres:password@localhost:5432/rent")
+	if err != nil {
+		os.Exit(999)
+	}
+	// Create registrar
+	r := identity.NewRegistrar(db)
+	// Create location creator
+	l := location.NewCreator(db)
+	// Create Router
+	router = rest.NewRouter(r, l)
+
+	os.Exit(m.Run())
+}
 
 func getServiceURL() string {
 	u := os.Getenv("SERVICE_URL")
