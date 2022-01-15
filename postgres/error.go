@@ -3,8 +3,7 @@ package postgres
 import (
 	"database/sql"
 	"errors"
-
-	"github.com/jackc/pgconn"
+	"github.com/lib/pq"
 
 	"github.com/bradleyshawkins/rent"
 )
@@ -19,9 +18,9 @@ func toRentError(err error) error {
 		return rent.NewError(err, rent.WithNotExists(), rent.WithMessage("entity does not exist"))
 	}
 
-	var pgErr *pgconn.PgError
+	var pgErr *pq.Error
 	if errors.As(err, &pgErr) {
-		switch pgErr.Code {
+		switch string(pgErr.Code) {
 		case duplicateEntry:
 			return rent.NewError(err, rent.WithDuplicate(), rent.WithMessage("duplicate entry found"))
 		case foreignKeyFailed:
