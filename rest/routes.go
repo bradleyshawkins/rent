@@ -36,7 +36,7 @@ func NewRouter(registrar *identity.Registrar, propertyCreator *location.Property
 	log.Println("Registering routes")
 	c.Get("/health", p.Health)
 	// User management
-	c.Post("/user/register", ErrorHandler(p.RegisterUser))
+	c.Post("/user", ErrorHandler(p.RegisterUser))
 	c.Post("/accounts/{accountID}/user", ErrorHandler(p.RegisterUserToAccount))
 	//c.Get("/user/{userID}", ErrorHandler(p.LoadUser))
 	//c.Delete("/account/{accountID}/user/{userID}", ErrorHandler(p.CancelUser))

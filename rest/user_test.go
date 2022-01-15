@@ -1,5 +1,4 @@
 //go:build integration
-// +build integration
 
 package rest_test
 
@@ -7,6 +6,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"net/http"
+	"net/http/httptest"
 	"testing"
 
 	"github.com/bradleyshawkins/rent"
@@ -18,11 +18,21 @@ import (
 func TestRegisterUser(t *testing.T) {
 	i := is.New(t)
 
-	accountID, userID, err := registerUser(newDefaultRegisterUserRequest("registerUser_register@test.com"))
+	var buf bytes.Buffer
+	err := json.NewEncoder(&buf).Encode(nil)
 	i.NoErr(err)
 
-	i.True(accountID != (uuid.UUID{}))
-	i.True(userID != (uuid.UUID{}))
+	req := httptest.NewRequest(http.MethodPost, "/user", &buf)
+	rr := httptest.NewRecorder()
+	err = router.RegisterUser(rr, req)
+	i.NoErr(err)
+
+	var rrs rest.RegisterUserResponse
+	err = json.NewDecoder(rr.Body).Decode(&rrs)
+	i.NoErr(err)
+
+	i.True(rrs.UserID != uuid.Nil)
+	i.True(rrs.AccountID != uuid.Nil)
 }
 
 func TestRegisterUser_EmailAddressExists(t *testing.T) {
