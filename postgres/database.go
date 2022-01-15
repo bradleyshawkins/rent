@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 
-	_ "github.com/jackc/pgx/v4/stdlib"
+	_ "github.com/lib/pq"
 	"github.com/pressly/goose"
 )
 
@@ -13,15 +13,20 @@ type Database struct {
 	db *sql.DB
 }
 
-func NewDatabase(connectionString string) (*Database, error) {
+func NewDatabase(connectionString, migrationPath string) (*Database, error) {
 	db, err := sql.Open("postgres", connectionString)
 	if err != nil {
 		return nil, err
 	}
-	return &Database{db: db}, nil
+	database := &Database{db: db}
+	err = database.migrate(migrationPath)
+	if err != nil {
+		return nil, err
+	}
+	return database, nil
 }
 
-func (d *Database) Migrate(migrationPath string) error {
+func (d *Database) migrate(migrationPath string) error {
 	log.Println("Running database migrations...")
 	goose.SetTableName("goose_db_version")
 	err := goose.SetDialect("postgres")

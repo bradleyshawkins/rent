@@ -28,16 +28,10 @@ func main() {
 	}
 
 	log.Println("Initializing database connection")
-	db, err := postgres.NewDatabase(c.ConnectionString)
+	db, err := postgres.NewDatabase(c.ConnectionString, c.MigrationPath)
 	if err != nil {
 		log.Println("unable to connect to database. Error:", err)
 		os.Exit(1)
-	}
-
-	err = db.Migrate(c.MigrationPath)
-	if err != nil {
-		log.Println("unable to migrate database. Error:", err)
-		os.Exit(2)
 	}
 
 	userRegistrationService := identity.NewRegistrar(db)
