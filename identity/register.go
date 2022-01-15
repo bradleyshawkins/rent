@@ -7,13 +7,13 @@ import (
 	"github.com/bradleyshawkins/rent"
 )
 
-type PersonRegistration struct {
-	ID           PersonID
+type UserRegistration struct {
+	ID           UserID
 	EmailAddress *mail.Address
 	Password     string
 	FirstName    string
 	LastName     string
-	Status       PersonStatus
+	Status       UserStatus
 }
 
 type AccountRegistration struct {
@@ -21,12 +21,12 @@ type AccountRegistration struct {
 	Status AccountStatus
 }
 
-// RegistrationService contains all methods used to register a person.
+// RegistrationService contains all methods used to register a user.
 // It will typically be implemented by a transaction that allows all calls to be chained together
 type RegistrationService interface {
-	RegisterPerson(u *PersonRegistration) error
-	RegisterAccount(personID PersonID, a *AccountRegistration) error
-	AddPersonToAccount(accountID AccountID, u PersonID, role Role) error
+	RegisterUser(u *UserRegistration) error
+	RegisterAccount(userID UserID, a *AccountRegistration) error
+	AddUserToAccount(accountID AccountID, u UserID, role Role) error
 }
 
 // registrar is the interface that begins the registration process.
@@ -35,7 +35,7 @@ type registrar interface {
 	Register(registerFunc RegistrationFunc) error
 }
 
-// Registrar handles registering a person and creating an account for them
+// Registrar handles registering a user and creating an account for them
 type Registrar struct {
 	uc registrar
 }
@@ -45,23 +45,23 @@ func NewRegistrar(uc registrar) *Registrar {
 	return &Registrar{uc: uc}
 }
 
-// RegistrationFunc is a closer around the steps used to register a person
+// RegistrationFunc is a closer around the steps used to register a user
 type RegistrationFunc func(us RegistrationService) error
 
-// Register registers a person and creates an account for them
-func (u *Registrar) Register(emailAddress string, firstName, lastName string, password string) (*PersonRegistration, *AccountRegistration, error) {
+// Register registers a user and creates an account for them
+func (u *Registrar) Register(emailAddress string, firstName, lastName string, password string) (*UserRegistration, *AccountRegistration, error) {
 	addr, err := mail.ParseAddress(emailAddress)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	person := &PersonRegistration{
-		ID:           NewPersonID(),
+	user := &UserRegistration{
+		ID:           NewUserID(),
 		EmailAddress: addr,
 		Password:     password,
 		FirstName:    firstName,
 		LastName:     lastName,
-		Status:       PersonActive,
+		Status:       UserActive,
 	}
 
 	account := &AccountRegistration{
@@ -69,23 +69,23 @@ func (u *Registrar) Register(emailAddress string, firstName, lastName string, pa
 		Status: AccountActive,
 	}
 
-	err = u.uc.Register(u.register(person, account))
+	err = u.uc.Register(u.register(user, account))
 	if err != nil {
 		return nil, nil, err
 	}
 
-	return person, account, nil
+	return user, account, nil
 }
 
-// register is a closure that registers the person and an account
-func (u *Registrar) register(person *PersonRegistration, account *AccountRegistration) RegistrationFunc {
+// register is a closure that registers the user and an account
+func (u *Registrar) register(user *UserRegistration, account *AccountRegistration) RegistrationFunc {
 	return func(us RegistrationService) error {
-		err := us.RegisterPerson(person)
+		err := us.RegisterUser(user)
 		if err != nil {
 			return err
 		}
 
-		err = us.RegisterAccount(person.ID, account)
+		err = us.RegisterAccount(user.ID, account)
 		if err != nil {
 			return err
 		}
@@ -94,7 +94,7 @@ func (u *Registrar) register(person *PersonRegistration, account *AccountRegistr
 	}
 }
 
-func (u *Registrar) RegisterPersonToAccount(accountID AccountID, role string, emailAddress string, firstName string, lastName string, password string) (*PersonRegistration, error) {
+func (u *Registrar) RegisterUserToAccount(accountID AccountID, role string, emailAddress string, firstName string, lastName string, password string) (*UserRegistration, error) {
 	addr, err := mail.ParseAddress(emailAddress)
 	if err != nil {
 		return nil, err
@@ -105,31 +105,31 @@ func (u *Registrar) RegisterPersonToAccount(accountID AccountID, role string, em
 		return nil, rent.NewError(fmt.Errorf("invalid role provided. Role %v", role), rent.WithInvalidPayload())
 	}
 
-	person := &PersonRegistration{
-		ID:           NewPersonID(),
+	user := &UserRegistration{
+		ID:           NewUserID(),
 		EmailAddress: addr,
 		Password:     password,
 		FirstName:    firstName,
 		LastName:     lastName,
-		Status:       PersonActive,
+		Status:       UserActive,
 	}
 
-	err = u.uc.Register(u.registerPersonToAccount(accountID, person, r))
+	err = u.uc.Register(u.registerUserToAccount(accountID, user, r))
 	if err != nil {
 		return nil, err
 	}
 
-	return person, nil
+	return user, nil
 }
 
-func (u *Registrar) registerPersonToAccount(accountID AccountID, person *PersonRegistration, role Role) RegistrationFunc {
+func (u *Registrar) registerUserToAccount(accountID AccountID, user *UserRegistration, role Role) RegistrationFunc {
 	return func(us RegistrationService) error {
-		err := us.RegisterPerson(person)
+		err := us.RegisterUser(user)
 		if err != nil {
 			return err
 		}
 
-		err = us.AddPersonToAccount(accountID, person.ID, role)
+		err = us.AddUserToAccount(accountID, user.ID, role)
 		if err != nil {
 			return err
 		}

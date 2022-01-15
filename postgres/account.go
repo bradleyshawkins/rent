@@ -4,21 +4,21 @@ import (
 	"github.com/bradleyshawkins/rent/identity"
 )
 
-func (t *transaction) RegisterAccount(pID identity.PersonID, a *identity.AccountRegistration) error {
+func (t *transaction) RegisterAccount(uID identity.UserID, a *identity.AccountRegistration) error {
 	_, err := t.tx.Exec(`INSERT INTO account(id, status) VALUES ($1, $2)`, a.ID, a.Status)
 	if err != nil {
 		return toRentError(err)
 	}
 
-	err = t.AddPersonToAccount(a.ID, pID, identity.RoleOwner)
+	err = t.AddUserToAccount(a.ID, uID, identity.RoleOwner)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (t *transaction) AddPersonToAccount(aID identity.AccountID, pID identity.PersonID, role identity.Role) error {
-	_, err := t.tx.Exec(`INSERT INTO membership(account_id, person_id, role_id) VALUES ($1, $2, $3)`, aID, pID, role)
+func (t *transaction) AddUserToAccount(aID identity.AccountID, uID identity.UserID, role identity.Role) error {
+	_, err := t.tx.Exec(`INSERT INTO membership(account_id, app_user_id, role_id) VALUES ($1, $2, $3)`, aID, uID, role)
 	if err != nil {
 		return toRentError(err)
 	}
