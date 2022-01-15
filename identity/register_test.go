@@ -11,69 +11,69 @@ import (
 	"github.com/bradleyshawkins/rent/identity"
 )
 
-type mockPersonCreatorService struct {
-	RegisterPersonPersonRegistration   *identity.PersonRegistration
-	RegisterPersonError                error
-	RegisterAccountPersonID            identity.PersonID
+type mockUserCreatorService struct {
+	RegisterUserUserRegistration       *identity.UserRegistration
+	RegisterUserError                  error
+	RegisterAccountUserID              identity.UserID
 	RegisterAccountAccountRegistration *identity.AccountRegistration
 	RegisterAccountError               error
-	AddPersonToAccountAccountID        identity.AccountID
-	AddPersonToAccountPersonID         identity.PersonID
-	AddPersonToAccountRole             identity.Role
-	AddPersonToAccountError            error
+	AddUserToAccountAccountID          identity.AccountID
+	AddUserToAccountUserID             identity.UserID
+	AddUserToAccountRole               identity.Role
+	AddUserToAccountError              error
 }
 
-func (m *mockPersonCreatorService) RegisterPerson(p *identity.PersonRegistration) error {
-	m.RegisterPersonPersonRegistration = p
-	return m.RegisterPersonError
+func (m *mockUserCreatorService) RegisterUser(p *identity.UserRegistration) error {
+	m.RegisterUserUserRegistration = p
+	return m.RegisterUserError
 }
 
-func (m *mockPersonCreatorService) RegisterAccount(pID identity.PersonID, a *identity.AccountRegistration) error {
-	m.RegisterAccountPersonID = pID
+func (m *mockUserCreatorService) RegisterAccount(pID identity.UserID, a *identity.AccountRegistration) error {
+	m.RegisterAccountUserID = pID
 	m.RegisterAccountAccountRegistration = a
 	return m.RegisterAccountError
 }
 
-func (m *mockPersonCreatorService) AddPersonToAccount(aID identity.AccountID, pID identity.PersonID, role identity.Role) error {
-	m.AddPersonToAccountAccountID = aID
-	m.AddPersonToAccountPersonID = pID
-	m.AddPersonToAccountRole = role
-	return m.AddPersonToAccountError
+func (m *mockUserCreatorService) AddUserToAccount(aID identity.AccountID, pID identity.UserID, role identity.Role) error {
+	m.AddUserToAccountAccountID = aID
+	m.AddUserToAccountUserID = pID
+	m.AddUserToAccountRole = role
+	return m.AddUserToAccountError
 }
 
-type mockPersonCreator struct {
-	mpcs *mockPersonCreatorService
+type mockUserCreator struct {
+	mpcs *mockUserCreatorService
 }
 
-func (m *mockPersonCreator) Register(f identity.RegistrationFunc) error {
+func (m *mockUserCreator) Register(f identity.RegistrationFunc) error {
 	return f(m.mpcs)
 }
 
-func TestRegisterPerson(t *testing.T) {
+func TestRegisterUser(t *testing.T) {
 	i := is.New(t)
-	mpcs := &mockPersonCreatorService{}
-	mpc := &mockPersonCreator{mpcs}
+	mpcs := &mockUserCreatorService{}
+	mpc := &mockUserCreator{mpcs}
 	registrar := identity.NewRegistrar(mpc)
 	emailAddress := "email.address@test.com"
 	firstName := "First"
 	lastName := "Last"
 	password := "Password"
 
-	person, account, err := registrar.Register(emailAddress, firstName, lastName, password)
+	user, account, err := registrar.Register(emailAddress, firstName, lastName, password)
 	if err != nil {
 		t.Fatal("Unexpected error occurred. Error:", err)
 	}
 
-	if person == nil {
-		t.Fatal("Person was nil. Person:", person)
+	if user == nil {
+		t.Fatal("User was nil. User:", user)
 	}
 
-	t.Log("Person:", person)
+	t.Log("User:", user)
 
-	i.Equal(person.EmailAddress.Address, emailAddress)
-	i.Equal(person.FirstName, firstName)
-	i.Equal(person.LastName, lastName)
-	i.True(!person.ID.IsZero())
+	i.Equal(user.EmailAddress.Address, emailAddress)
+	i.Equal(user.FirstName, firstName)
+	i.Equal(user.LastName, lastName)
+	i.True(!user.ID.IsZero())
 
 	if account == nil {
 		t.Fatal("Account was nil. Account:", account)
@@ -84,40 +84,40 @@ func TestRegisterPerson(t *testing.T) {
 	i.True(!account.ID.IsZero())
 }
 
-func TestRegisterPerson_Fail(t *testing.T) {
+func TestRegisterUser_Fail(t *testing.T) {
 	tests := []struct {
 		name               string
-		createPersonError  error
+		createUserError    error
 		createAccountError error
 	}{
 		{
-			name:               "Create Person Fails",
-			createPersonError:  errors.New("unable to create person"),
+			name:               "Create User Fails",
+			createUserError:    errors.New("unable to create user"),
 			createAccountError: nil,
 		},
 		{
 			name:               "Create Account Fails",
-			createPersonError:  nil,
+			createUserError:    nil,
 			createAccountError: errors.New("unable to create account"),
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mpcs := &mockPersonCreatorService{
-				RegisterPersonError:  tt.createPersonError,
+			mpcs := &mockUserCreatorService{
+				RegisterUserError:    tt.createUserError,
 				RegisterAccountError: tt.createAccountError,
 			}
-			mpc := &mockPersonCreator{mpcs: mpcs}
+			mpc := &mockUserCreator{mpcs: mpcs}
 
 			registrar := identity.NewRegistrar(mpc)
 
-			person, account, err := registrar.Register("email.address@test.com", "First", "Last", "Password")
+			user, account, err := registrar.Register("email.address@test.com", "First", "Last", "Password")
 			if err == nil {
 				t.Error("Received a nil error. Should have received an error")
 			}
-			if person != nil {
-				t.Error("person was non-nil. Person:", person)
+			if user != nil {
+				t.Error("user was non-nil. User:", user)
 			}
 			if account != nil {
 				t.Error("account was non-nil. Account:", account)
@@ -127,10 +127,10 @@ func TestRegisterPerson_Fail(t *testing.T) {
 	}
 }
 
-func TestRegisterPersonToAccount(t *testing.T) {
+func TestRegisterUserToAccount(t *testing.T) {
 	i := is.New(t)
-	mpcs := &mockPersonCreatorService{}
-	mpc := &mockPersonCreator{mpcs}
+	mpcs := &mockUserCreatorService{}
+	mpc := &mockUserCreator{mpcs}
 	registrar := identity.NewRegistrar(mpc)
 	emailAddress := "email.address@test.com"
 	firstName := "First"
@@ -138,61 +138,61 @@ func TestRegisterPersonToAccount(t *testing.T) {
 	password := "Password"
 	accountID := identity.AsAccountID(uuid.NewV4())
 
-	person, err := registrar.RegisterPersonToAccount(accountID, "Owner", emailAddress, firstName, lastName, password)
+	user, err := registrar.RegisterUserToAccount(accountID, "Owner", emailAddress, firstName, lastName, password)
 	if err != nil {
 		t.Fatal("Unexpected error occurred. Error:", err)
 	}
 
-	if person == nil {
-		t.Fatal("Person was nil. Person:", person)
+	if user == nil {
+		t.Fatal("User was nil. User:", user)
 	}
 
-	t.Log("Person:", person)
+	t.Log("User:", user)
 
-	i.Equal(person.EmailAddress.Address, emailAddress)
-	i.Equal(person.FirstName, firstName)
-	i.Equal(person.LastName, lastName)
-	i.True(!person.ID.IsZero())
+	i.Equal(user.EmailAddress.Address, emailAddress)
+	i.Equal(user.FirstName, firstName)
+	i.Equal(user.LastName, lastName)
+	i.True(!user.ID.IsZero())
 
-	i.Equal(mpcs.AddPersonToAccountRole, identity.RoleOwner)
-	i.Equal(mpcs.AddPersonToAccountAccountID, accountID)
-	i.Equal(mpcs.AddPersonToAccountPersonID, person.ID)
+	i.Equal(mpcs.AddUserToAccountRole, identity.RoleOwner)
+	i.Equal(mpcs.AddUserToAccountAccountID, accountID)
+	i.Equal(mpcs.AddUserToAccountUserID, user.ID)
 }
 
-func TestRegisterPersonToAccount_Fail(t *testing.T) {
+func TestRegisterUserToAccount_Fail(t *testing.T) {
 	tests := []struct {
-		name                    string
-		registerPersonError     error
-		addPersonToAccountError error
+		name                  string
+		registerUserError     error
+		addUserToAccountError error
 	}{
 		{
-			name:                    "Create Person Fails",
-			registerPersonError:     errors.New("unable to create person"),
-			addPersonToAccountError: nil,
+			name:                  "Create User Fails",
+			registerUserError:     errors.New("unable to create user"),
+			addUserToAccountError: nil,
 		},
 		{
-			name:                    "Create Account Fails",
-			registerPersonError:     nil,
-			addPersonToAccountError: errors.New("unable to add person to account"),
+			name:                  "Create Account Fails",
+			registerUserError:     nil,
+			addUserToAccountError: errors.New("unable to add user to account"),
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mpcs := &mockPersonCreatorService{
-				RegisterPersonError:     tt.registerPersonError,
-				AddPersonToAccountError: tt.addPersonToAccountError,
+			mpcs := &mockUserCreatorService{
+				RegisterUserError:     tt.registerUserError,
+				AddUserToAccountError: tt.addUserToAccountError,
 			}
-			mpc := &mockPersonCreator{mpcs: mpcs}
+			mpc := &mockUserCreator{mpcs: mpcs}
 
 			registrar := identity.NewRegistrar(mpc)
 
-			person, err := registrar.RegisterPersonToAccount(identity.NewAccountID(), "Owner", "email.address@test.com", "First", "Last", "Password")
+			user, err := registrar.RegisterUserToAccount(identity.NewAccountID(), "Owner", "email.address@test.com", "First", "Last", "Password")
 			if err == nil {
 				t.Error("Received a nil error. Should have received an error")
 			}
-			if person != nil {
-				t.Error("person was non-nil. Person:", person)
+			if user != nil {
+				t.Error("user was non-nil. User:", user)
 			}
 			t.Logf("error: %v", err)
 		})

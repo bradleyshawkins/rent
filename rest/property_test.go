@@ -21,7 +21,7 @@ import (
 func TestRegisterProperty(t *testing.T) {
 	i := is.New(t)
 
-	accountID, propertyID, err := registerPersonAndProperty("testRegisterProperty_test@test.com", newDefaultRegisterPropertyRequest())
+	accountID, propertyID, err := registerUserAndProperty("testRegisterProperty_test@test.com", newDefaultRegisterPropertyRequest())
 	i.NoErr(err)
 
 	i.True(accountID != (uuid.UUID{}))
@@ -67,7 +67,7 @@ func TestRegisterProperty_BadInput(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			i := is.New(t)
 
-			accountID, _, err := registerPerson(newDefaultRegisterPersonRequest(fmt.Sprintf("testRegisterProperty_%d_test@test.com", idx)))
+			accountID, _, err := registerUser(newDefaultRegisterUserRequest(fmt.Sprintf("testRegisterProperty_%d_test@test.com", idx)))
 			i.NoErr(err)
 
 			prop := &rest.RegisterPropertyRequest{
@@ -172,7 +172,7 @@ func TestRegisterProperty_BadAccountID(t *testing.T) {
 //		},
 //	}
 //
-//	accountID, propertyID, err := registerPersonAndProperty("testLoadProperty@test.com", prop)
+//	accountID, propertyID, err := registerUserAndProperty("testLoadProperty@test.com", prop)
 //	i.NoErr(err)
 //
 //	u := getServiceURL() + fmt.Sprintf("/account/%s/property/%s", accountID, propertyID)
@@ -198,7 +198,7 @@ func TestRegisterProperty_BadAccountID(t *testing.T) {
 //func TestRemoveProperty(t *testing.T) {
 //	i := is.New(t)
 //
-//	accountID, propertyID, err := registerPersonAndProperty("testRemoveProperty@test.com", newDefaultRegisterPropertyRequest())
+//	accountID, propertyID, err := registerUserAndProperty("testRemoveProperty@test.com", newDefaultRegisterPropertyRequest())
 //	i.NoErr(err)
 //
 //	req, err := newRemovePropertyRestRequest(accountID, propertyID)
@@ -235,7 +235,7 @@ func TestRegisterProperty_BadAccountID(t *testing.T) {
 //			propertyID: uuid.NewV4().String(),
 //		},
 //		{
-//			name:       "Non-UUID PersonID",
+//			name:       "Non-UUID UserID",
 //			accountID:  uuid.NewV4().String(),
 //			propertyID: "1234",
 //		},
@@ -263,8 +263,8 @@ func TestRegisterProperty_BadAccountID(t *testing.T) {
 //	}
 //}
 
-func registerPersonAndProperty(emailAddress string, prop *rest.RegisterPropertyRequest) (uuid.UUID, uuid.UUID, error) {
-	accountID, _, err := registerPerson(newDefaultRegisterPersonRequest(emailAddress))
+func registerUserAndProperty(emailAddress string, prop *rest.RegisterPropertyRequest) (uuid.UUID, uuid.UUID, error) {
+	accountID, _, err := registerUser(newDefaultRegisterUserRequest(emailAddress))
 	if err != nil {
 		return uuid.UUID{}, uuid.UUID{}, err
 	}

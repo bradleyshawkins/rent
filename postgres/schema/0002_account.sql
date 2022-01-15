@@ -20,9 +20,9 @@ INSERT INTO role(id, value) VALUES (3, 'read');
 
 CREATE TABLE membership (
     account_id UUID NOT NULL REFERENCES account(id),
-    person_id UUID NOT NULL REFERENCES person(id),
+    app_user_id UUID NOT NULL REFERENCES app_user(id),
     role_id INT NOT NULL REFERENCES role(id),
-    PRIMARY KEY (account_id, person_id),
+    PRIMARY KEY (account_id, app_user_id),
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     modified_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );

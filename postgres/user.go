@@ -6,7 +6,7 @@ import (
 	uuid "github.com/satori/go.uuid"
 )
 
-// Register provides a transaction around registering accounts and persons
+// Register provides a transaction around registering accounts and users
 func (d *Database) Register(registrationFunc identity.RegistrationFunc) error {
 	tx, err := d.begin()
 	if err != nil {
@@ -27,14 +27,14 @@ func (d *Database) Register(registrationFunc identity.RegistrationFunc) error {
 	return nil
 }
 
-func (t *transaction) RegisterPerson(person *identity.PersonRegistration) error {
+func (t *transaction) RegisterUser(user *identity.UserRegistration) error {
 	detailsID := uuid.NewV4()
-	_, err := t.tx.Exec(`INSERT INTO person_details(id, first_name, last_name) VALUES ($1, $2, $3)`, detailsID, person.FirstName, person.LastName)
+	_, err := t.tx.Exec(`INSERT INTO app_user_details(id, first_name, last_name) VALUES ($1, $2, $3)`, detailsID, user.FirstName, user.LastName)
 	if err != nil {
 		return toRentError(err)
 	}
 
-	_, err = t.tx.Exec("INSERT INTO person(id, email_address, password, status, person_details_id) VALUES ($1, $2, $3, $4, $5)", person.ID, person.EmailAddress, person.Password, person.Status, detailsID)
+	_, err = t.tx.Exec("INSERT INTO app_user(id, email_address, password, status, app_user_details_id) VALUES ($1, $2, $3, $4, $5)", user.ID, user.EmailAddress, user.Password, user.Status, detailsID)
 	if err != nil {
 		return toRentError(err)
 	}
@@ -43,8 +43,8 @@ func (t *transaction) RegisterPerson(person *identity.PersonRegistration) error 
 }
 
 //
-//// RegisterPerson inserts the person into the database, creates an account and associates the person with the account
-//func (p *Postgres) RegisterPerson(a *rent.Account, person *rent.Person) error {
+//// RegisterUser inserts the person into the database, creates an account and associates the person with the account
+//func (p *Postgres) RegisterUser(a *rent.Account, person *rent.Person) error {
 //	if err := person.Validate(); err != nil {
 //		return err
 //	}
@@ -145,7 +145,7 @@ func (t *transaction) RegisterPerson(person *identity.PersonRegistration) error 
 //
 //func getPersonByID(conn dbConn, id uuid.UUID) (*rent.Person, error) {
 //	var emailAddress, password, firstName, lastName string
-//	var statusID rent.PersonStatus
+//	var statusID rent.UserStatus
 //	err := conn.QueryRow(`SELECT p.email_address, p.password, p.status_id, pd.first_name, pd.last_name
 //										FROM person p
 //										INNER JOIN person_details pd ON p.id = pd.person_id
@@ -158,7 +158,7 @@ func (t *transaction) RegisterPerson(person *identity.PersonRegistration) error 
 //	return rent.NewExistingPerson(id, emailAddress, password, firstName, lastName, statusID)
 //}
 //
-//func updatePersonStatus(conn dbConn, id uuid.UUID, status rent.PersonStatus) error {
+//func updatePersonStatus(conn dbConn, id uuid.UUID, status rent.UserStatus) error {
 //	_, err := conn.Exec(`UPDATE person SET status_id = $1 WHERE id = $2`, status, id)
 //	if err != nil {
 //		return toRentError(err)

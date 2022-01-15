@@ -13,35 +13,35 @@ import (
 
 const (
 	accountID = "accountID"
-	personID  = "personID"
+	userID    = "userID"
 )
 
-type RegisterPersonRequest struct {
+type RegisterUserRequest struct {
 	EmailAddress string `json:"emailAddress"`
 	Password     string `json:"password"`
 	FirstName    string `json:"firstName"`
 	LastName     string `json:"lastName"`
 }
 
-type RegisterPersonResponse struct {
+type RegisterUserResponse struct {
 	AccountID uuid.UUID `json:"accountID"`
-	PersonID  uuid.UUID `json:"personID"`
+	UserID    uuid.UUID `json:"userID"`
 }
 
-func (l *Router) RegisterPerson(w http.ResponseWriter, r *http.Request) error {
-	var rr RegisterPersonRequest
+func (l *Router) RegisterUser(w http.ResponseWriter, r *http.Request) error {
+	var rr RegisterUserRequest
 	err := json.NewDecoder(r.Body).Decode(&rr)
 	if err != nil {
 		return rent.NewError(err, rent.WithInvalidPayload(), rent.WithMessage("unable to decode request"))
 	}
 
-	person, account, err := l.registrar.Register(rr.EmailAddress, rr.FirstName, rr.LastName, rr.Password)
+	user, account, err := l.registrar.Register(rr.EmailAddress, rr.FirstName, rr.LastName, rr.Password)
 	if err != nil {
 		return err
 	}
 
 	w.WriteHeader(http.StatusCreated)
-	err = json.NewEncoder(w).Encode(RegisterPersonResponse{PersonID: person.ID.AsUUID(), AccountID: account.ID.AsUUID()})
+	err = json.NewEncoder(w).Encode(RegisterUserResponse{UserID: user.ID.AsUUID(), AccountID: account.ID.AsUUID()})
 	if err != nil {
 		return rent.NewError(err, rent.WithInternal(), rent.WithMessage("unable to serialize response"))
 	}
@@ -49,7 +49,7 @@ func (l *Router) RegisterPerson(w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-type RegisterPersonToAccountRequest struct {
+type RegisterUserToAccountRequest struct {
 	EmailAddress string `json:"emailAddress"`
 	Password     string `json:"password"`
 	FirstName    string `json:"firstName"`
@@ -57,29 +57,29 @@ type RegisterPersonToAccountRequest struct {
 	Role         string `json:"role"`
 }
 
-type RegisterPersonToAccountResponse struct {
-	PersonID uuid.UUID `json:"personID"`
+type RegisterUserToAccountResponse struct {
+	UserID uuid.UUID `json:"userID"`
 }
 
-func (l *Router) RegisterPersonToAccount(w http.ResponseWriter, r *http.Request) error {
+func (l *Router) RegisterUserToAccount(w http.ResponseWriter, r *http.Request) error {
 	accountID, err := getURLParamAsUUID(r, accountID)
 	if err != nil {
 		return err
 	}
 
-	var rr RegisterPersonToAccountRequest
+	var rr RegisterUserToAccountRequest
 	err = json.NewDecoder(r.Body).Decode(&rr)
 	if err != nil {
 		return rent.NewError(err, rent.WithInvalidPayload(), rent.WithMessage("unable to decode request"))
 	}
 
-	person, err := l.registrar.RegisterPersonToAccount(identity.AsAccountID(accountID), rr.Role, rr.EmailAddress, rr.FirstName, rr.LastName, rr.Password)
+	user, err := l.registrar.RegisterUserToAccount(identity.AsAccountID(accountID), rr.Role, rr.EmailAddress, rr.FirstName, rr.LastName, rr.Password)
 	if err != nil {
 		return err
 	}
 
 	w.WriteHeader(http.StatusCreated)
-	err = json.NewEncoder(w).Encode(RegisterPersonToAccountResponse{PersonID: person.ID.AsUUID()})
+	err = json.NewEncoder(w).Encode(RegisterUserToAccountResponse{UserID: user.ID.AsUUID()})
 	if err != nil {
 		return rent.NewError(err, rent.WithInternal(), rent.WithMessage("unable to serialize response"))
 	}
@@ -97,7 +97,7 @@ func (l *Router) RegisterPersonToAccount(w http.ResponseWriter, r *http.Request)
 //}
 //
 //func (p *Router) LoadPerson(w http.ResponseWriter, r *http.Request) error {
-//	pID, err := getURLParamAsUUID(r, personID)
+//	pID, err := getURLParamAsUUID(r, userID)
 //	if err != nil {
 //		return err
 //	}
@@ -126,7 +126,7 @@ func (l *Router) RegisterPersonToAccount(w http.ResponseWriter, r *http.Request)
 //		return err
 //	}
 //
-//	pID, err := getURLParamAsUUID(r, personID)
+//	pID, err := getURLParamAsUUID(r, userID)
 //	if err != nil {
 //		return err
 //	}

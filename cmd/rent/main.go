@@ -40,10 +40,10 @@ func main() {
 		os.Exit(2)
 	}
 
-	personRegistrationService := identity.NewRegistrar(db)
+	userRegistrationService := identity.NewRegistrar(db)
 	propertyCreator := location.NewCreator(db)
 
-	router := rest.NewRouter(personRegistrationService, propertyCreator)
+	router := rest.NewRouter(userRegistrationService, propertyCreator)
 
 	stop := router.Start(context.Background(), c.Port)
 	if err != nil {
