@@ -1,5 +1,3 @@
-//go:build integration
-
 package rest_test
 
 //func TestRegisterProperty(t *testing.T) {
