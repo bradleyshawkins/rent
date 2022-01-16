@@ -31,4 +31,4 @@ jobs:
     - uses: actions/checkout@v2
     
     - name: Run Integration Tests
-      run: make test.integration.env
+      run: make test.integration
