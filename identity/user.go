@@ -2,6 +2,7 @@ package identity
 
 import (
 	uuid "github.com/satori/go.uuid"
+	"net/mail"
 )
 
 type UserID uuid.UUID
@@ -32,3 +33,11 @@ const (
 	UserDisabled UserStatus = "Disabled"
 	UserActive   UserStatus = "Active"
 )
+
+type User struct {
+	ID           UserID
+	EmailAddress *mail.Address
+	FirstName    string
+	LastName     string
+	Status       UserStatus
+}

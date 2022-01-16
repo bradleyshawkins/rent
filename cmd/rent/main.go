@@ -35,9 +35,10 @@ func main() {
 	}
 
 	userRegistrationService := identity.NewRegistrar(db)
+	userLoader := identity.NewUserRetriever(db)
 	propertyCreator := location.NewCreator(db)
 
-	router := rest.NewRouter(userRegistrationService, propertyCreator)
+	router := rest.NewRouter(userRegistrationService, userLoader, propertyCreator)
 
 	stop := router.Start(context.Background(), c.Port)
 	if err != nil {

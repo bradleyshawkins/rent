@@ -3,11 +3,10 @@ package rest_test
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
-	"github.com/bxcodec/faker/v3"
 	"net/http"
-	"net/http/httptest"
 	"testing"
+
+	"github.com/bxcodec/faker/v3"
 
 	"github.com/bradleyshawkins/rent"
 	"github.com/bradleyshawkins/rent/rest"
@@ -29,14 +28,16 @@ func TestRegisterUserIntegration(t *testing.T) {
 	err := json.NewEncoder(&buf).Encode(user)
 	i.NoErr(err)
 
-	req := httptest.NewRequest(http.MethodPost, "/user", &buf)
-	rr := httptest.NewRecorder()
-
-	err = router.RegisterUser(rr, req)
+	req, err := http.NewRequest(http.MethodPost, serverAddr+"/users", &buf)
 	i.NoErr(err)
 
+	resp, err := httpClient.Do(req)
+	i.NoErr(err)
+
+	i.Equal(resp.StatusCode, http.StatusCreated)
+
 	var rrs rest.RegisterUserResponse
-	err = json.NewDecoder(rr.Body).Decode(&rrs)
+	err = json.NewDecoder(resp.Body).Decode(&rrs)
 	i.NoErr(err)
 
 	i.True(rrs.UserID != uuid.Nil)
@@ -59,14 +60,14 @@ func TestRegisterUser_EmailAddressExistsIntegration(t *testing.T) {
 	err := json.NewEncoder(&buf).Encode(user)
 	i.NoErr(err)
 
-	req := httptest.NewRequest(http.MethodPost, "/user", &buf)
-	rr := httptest.NewRecorder()
+	req, err := http.NewRequest(http.MethodPost, serverAddr+"/users", &buf)
+	i.NoErr(err)
 
-	err = router.RegisterUser(rr, req)
+	resp, err := httpClient.Do(req)
 	i.NoErr(err)
 
 	var rrs rest.RegisterUserResponse
-	err = json.NewDecoder(rr.Body).Decode(&rrs)
+	err = json.NewDecoder(resp.Body).Decode(&rrs)
 	i.NoErr(err)
 
 	i.True(rrs.UserID != uuid.Nil)
@@ -83,24 +84,20 @@ func TestRegisterUser_EmailAddressExistsIntegration(t *testing.T) {
 	err = json.NewEncoder(&dupBuf).Encode(dupUser)
 	i.NoErr(err)
 
-	dupReq := httptest.NewRequest(http.MethodPost, "/user", &dupBuf)
-	dupRR := httptest.NewRecorder()
+	dupReq, err := http.NewRequest(http.MethodPost, serverAddr+"/users", &dupBuf)
+	i.NoErr(err)
 
-	err = router.RegisterUser(dupRR, dupReq)
-	if err == nil {
-		t.Fatal("Should have received an error but didn't")
-	}
+	dupResp, err := httpClient.Do(dupReq)
+	i.NoErr(err)
 
-	var rentErr *rent.Error
-	if !errors.As(err, &rentErr) {
-		t.Fatalf("Unexpected error type received. Error: %v", err)
-	}
+	i.Equal(dupResp.StatusCode, http.StatusConflict)
 
-	t.Log(rentErr)
+	var restErr *rest.Error
+	err = json.NewDecoder(dupResp.Body).Decode(&restErr)
+	i.NoErr(err)
+	t.Log(restErr)
 
-	if rentErr.Code() != rent.CodeDuplicate {
-		t.Fatalf("unexpected code. Expected: %v, Got: %v", rent.CodeDuplicate, rentErr.Code())
-	}
+	i.Equal(restErr.Code, int(rent.CodeDuplicate))
 }
 
 func TestRegisterUser_MissingInputIntegration(t *testing.T) {
@@ -132,23 +129,86 @@ func TestRegisterUser_MissingInputIntegration(t *testing.T) {
 			err := json.NewEncoder(&buf).Encode(l)
 			i.NoErr(err)
 
-			r := httptest.NewRequest(http.MethodPost, "/user", &buf)
-			rr := httptest.NewRecorder()
-			err = router.RegisterUser(rr, r)
-			if err == nil {
-				t.Fatal("Expected an error but didn't get one")
-			}
+			r, err := http.NewRequest(http.MethodPost, serverAddr+"/users", &buf)
+			i.NoErr(err)
 
-			var rentErr *rent.Error
-			if !errors.As(err, &rentErr) {
-				t.Fatalf("Unexpected error type received. Error: %v", err)
-			}
+			resp, err := httpClient.Do(r)
+			i.NoErr(err)
 
-			t.Log(rentErr)
+			i.Equal(resp.StatusCode, http.StatusBadRequest)
 
-			if rentErr.Code() != rent.CodeInvalidField {
-				t.Fatalf("unexpected code. Expected: %v, Got: %v", rent.CodeInvalidField, rentErr.Code())
-			}
+			var restErr *rest.Error
+			err = json.NewDecoder(resp.Body).Decode(&restErr)
+			i.NoErr(err)
+			t.Log(restErr)
+
+			i.Equal(restErr.Code, int(rent.CodeInvalidField))
 		})
 	}
+}
+
+func TestLoadPersonIntegration(t *testing.T) {
+	i := is.New(t)
+
+	// Create user
+	user := rest.RegisterUserRequest{
+		EmailAddress: faker.Email(),
+		Password:     faker.Password(),
+		FirstName:    faker.FirstName(),
+		LastName:     faker.LastName(),
+	}
+
+	var buf bytes.Buffer
+	err := json.NewEncoder(&buf).Encode(user)
+	i.NoErr(err)
+
+	req, err := http.NewRequest(http.MethodPost, serverAddr+"/users", &buf)
+	i.NoErr(err)
+
+	resp, err := httpClient.Do(req)
+	i.NoErr(err)
+
+	var rrs rest.RegisterUserResponse
+	err = json.NewDecoder(resp.Body).Decode(&rrs)
+	i.NoErr(err)
+
+	i.True(rrs.UserID != uuid.Nil)
+	i.True(rrs.AccountID != uuid.Nil)
+
+	// Load User
+	addr := serverAddr + "/users/" + rrs.UserID.String()
+	loadReq, err := http.NewRequest(http.MethodGet, addr, http.NoBody)
+	i.NoErr(err)
+
+	loadResp, err := httpClient.Do(loadReq)
+	i.NoErr(err)
+
+	var lu rest.LoadUserResponse
+	err = json.NewDecoder(loadResp.Body).Decode(&lu)
+	i.NoErr(err)
+
+	i.Equal(lu.ID, rrs.UserID)
+	i.Equal(lu.FirstName, user.FirstName)
+	i.Equal(lu.LastName, user.LastName)
+	i.Equal(lu.EmailAddress, user.EmailAddress)
+}
+
+func TestLoadUser_UserNotExistIntegration(t *testing.T) {
+	i := is.New(t)
+
+	addr := serverAddr + "/users/" + uuid.NewV4().String()
+	loadReq, err := http.NewRequest(http.MethodGet, addr, http.NoBody)
+	i.NoErr(err)
+
+	resp, err := httpClient.Do(loadReq)
+	i.NoErr(err)
+
+	i.Equal(resp.StatusCode, http.StatusNotFound)
+
+	var restErr *rest.Error
+	err = json.NewDecoder(resp.Body).Decode(&restErr)
+	i.NoErr(err)
+	t.Log(restErr)
+
+	i.Equal(restErr.Code, int(rent.CodeNotExists))
 }
