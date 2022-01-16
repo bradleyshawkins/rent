@@ -5,16 +5,5 @@ deps.down:
 
 test.unit:
 	go test -tags=unit ./...
-test.integration:
-	go test -tags=integration ./...
-test.integration.env:
+test.integration: deps.down
 	./dev/integration.sh
-
-
-service.container.build:
-	docker build . -t rent:local
-
-env.start: service.container.build
-	docker-compose -f docker-compose.yaml -f dev/docker-compose.local.yaml up -d --force-recreate -V
-env.stop:
-	docker-compose -f docker-compose.yaml -f dev/docker-compose.local.yaml down

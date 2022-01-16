@@ -14,13 +14,13 @@ CREATE TABLE app_user (
     email_address TEXT NOT NULL,
     password TEXT NOT NULL,
     status TEXT NOT NULL,
-    app_user_details UUID NOT NULL REFERENCES app_user_details(id),
+    app_user_details_id UUID NOT NULL REFERENCES app_user_details(id),
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     modified_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE UNIQUE INDEX user_username_idx ON app_user(email_address);
-CREATE UNIQUE INDEX app_user_status_idx ON app_user(status);
+CREATE INDEX app_user_status_idx ON app_user(status);
 
 -- +goose StatementBegin
 CREATE OR REPLACE FUNCTION update_modified_at_column()

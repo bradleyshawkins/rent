@@ -3,10 +3,10 @@ package postgres
 import (
 	"database/sql"
 	"fmt"
-	"log"
-
+	"github.com/bradleyshawkins/rent"
 	_ "github.com/lib/pq"
 	"github.com/pressly/goose"
+	"log"
 )
 
 type Database struct {
@@ -16,8 +16,9 @@ type Database struct {
 func NewDatabase(connectionString, migrationPath string) (*Database, error) {
 	db, err := sql.Open("postgres", connectionString)
 	if err != nil {
-		return nil, err
+		return nil, rent.NewError(err, rent.WithInternal(), rent.WithMessage("unable to connect to database"))
 	}
+
 	database := &Database{db: db}
 	err = database.migrate(migrationPath)
 	if err != nil {
@@ -33,9 +34,10 @@ func (d *Database) migrate(migrationPath string) error {
 	if err != nil {
 		return fmt.Errorf("unable to set goose dialect to postgres. Error: %v", err)
 	}
+
 	err = goose.Up(d.db, migrationPath)
 	if err != nil {
-		return fmt.Errorf("unable to migrate database. Error: %v", err)
+		return rent.NewError(err, rent.WithInternal(), rent.WithMessage("unable to migrate database"))
 	}
 	return nil
 }

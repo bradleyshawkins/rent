@@ -5,6 +5,8 @@ package rest_test
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
+	"github.com/bxcodec/faker/v3"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -18,12 +20,20 @@ import (
 func TestRegisterUser(t *testing.T) {
 	i := is.New(t)
 
+	user := rest.RegisterUserRequest{
+		EmailAddress: faker.Email(),
+		Password:     faker.Password(),
+		FirstName:    faker.FirstName(),
+		LastName:     faker.LastName(),
+	}
+
 	var buf bytes.Buffer
-	err := json.NewEncoder(&buf).Encode(nil)
+	err := json.NewEncoder(&buf).Encode(user)
 	i.NoErr(err)
 
 	req := httptest.NewRequest(http.MethodPost, "/user", &buf)
 	rr := httptest.NewRecorder()
+
 	err = router.RegisterUser(rr, req)
 	i.NoErr(err)
 
@@ -38,35 +48,64 @@ func TestRegisterUser(t *testing.T) {
 func TestRegisterUser_EmailAddressExists(t *testing.T) {
 	i := is.New(t)
 
-	u := getServiceURL()
-	u += "/user/register"
+	email := faker.Email()
 
-	_, _, err := registerUser(newDefaultRegisterUserRequest("registerUserUsernameExists@test.com"))
+	user := rest.RegisterUserRequest{
+		EmailAddress: email,
+		Password:     faker.Password(),
+		FirstName:    faker.FirstName(),
+		LastName:     faker.LastName(),
+	}
+
+	var buf bytes.Buffer
+	err := json.NewEncoder(&buf).Encode(user)
 	i.NoErr(err)
 
-	r2, err := NewRegisterUserRequest(u, "registerUserUsernameExists@test.com")
+	req := httptest.NewRequest(http.MethodPost, "/user", &buf)
+	rr := httptest.NewRecorder()
+
+	err = router.RegisterUser(rr, req)
 	i.NoErr(err)
 
-	resp2, err := http.DefaultClient.Do(r2)
+	var rrs rest.RegisterUserResponse
+	err = json.NewDecoder(rr.Body).Decode(&rrs)
 	i.NoErr(err)
 
-	err = didReceiveStatusCode(resp2, http.StatusConflict)
+	i.True(rrs.UserID != uuid.Nil)
+	i.True(rrs.AccountID != uuid.Nil)
+
+	dupUser := rest.RegisterUserRequest{
+		EmailAddress: email,
+		Password:     faker.Password(),
+		FirstName:    faker.FirstName(),
+		LastName:     faker.LastName(),
+	}
+
+	var dupBuf bytes.Buffer
+	err = json.NewEncoder(&dupBuf).Encode(dupUser)
 	i.NoErr(err)
 
-	var restErr rest.Error
-	err = json.NewDecoder(resp2.Body).Decode(&restErr)
-	i.NoErr(err)
+	dupReq := httptest.NewRequest(http.MethodPost, "/user", &dupBuf)
+	dupRR := httptest.NewRecorder()
 
-	t.Log(restErr)
+	err = router.RegisterUser(dupRR, dupReq)
+	if err == nil {
+		t.Fatal("Should have received an error but didn't")
+	}
 
-	if rent.Code(restErr.Code) != rent.CodeDuplicate {
-		t.Fatalf("unexpected code. Expected: %v, Got: %v", rent.CodeDuplicate, rent.Code(restErr.Code))
+	var rentErr *rent.Error
+	if !errors.As(err, &rentErr) {
+		t.Fatalf("Unexpected error type received. Error: %v", err)
+	}
+
+	t.Log(rentErr)
+
+	if rentErr.Code() != rent.CodeDuplicate {
+		t.Fatalf("unexpected code. Expected: %v, Got: %v", rent.CodeDuplicate, rentErr.Code())
 	}
 }
 
-func TestRegisterUser_BadInput(t *testing.T) {
-	u := getServiceURL()
-	u += "/user/register"
+func TestRegisterUser_MissingInput(t *testing.T) {
 	tests := []struct {
 		name         string
 		password     string
@@ -91,48 +130,50 @@ func TestRegisterUser_BadInput(t *testing.T) {
 				EmailAddress: test.emailAddress,
 			}
 
-			b, err := json.Marshal(l)
+			var buf bytes.Buffer
+			err := json.NewEncoder(&buf).Encode(l)
 			i.NoErr(err)
 
-			r, err := http.NewRequest(http.MethodPost, u, bytes.NewReader(b))
-			i.NoErr(err)
+			r := httptest.NewRequest(http.MethodPost, "/user", &buf)
+			rr := httptest.NewRecorder()
+			err = router.RegisterUser(rr, r)
+			if err == nil {
+				t.Fatal("Expected an error but didn't get one")
+			}
 
-			resp, err := http.DefaultClient.Do(r)
-			i.NoErr(err)
+			var rentErr *rent.Error
+			if !errors.As(err, &rentErr) {
+				t.Fatalf("Unexpected error type received. Error: %v", err)
+			}
 
-			i.Equal(resp.StatusCode, http.StatusBadRequest)
+			t.Log(rentErr)
 
-			var restErr rest.Error
-			err = json.NewDecoder(resp.Body).Decode(&restErr)
-			i.NoErr(err)
-
-			t.Log(restErr)
-
-			if rent.Code(restErr.Code) != rent.CodeInvalidField {
-				t.Fatalf("unexpected code. Expected: %v, Got: %v", rent.CodeInvalidField, rent.Code(restErr.Code))
+			if rentErr.Code() != rent.CodeInvalidField {
+				t.Fatalf("unexpected code. Expected: %v, Got: %v", rent.CodeInvalidField, rentErr.Code())
 			}
 		})
 	}
 }
 
-func NewRegisterUserRequest(u string, emailAddress string) (*http.Request, error) {
-	b, err := json.Marshal(rest.RegisterUserRequest{
-		Password:     "password",
-		FirstName:    "FirstName",
-		LastName:     "LastName",
-		EmailAddress: emailAddress,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	r, err := http.NewRequest(http.MethodPost, u, bytes.NewReader(b))
-	if err != nil {
-		return nil, err
-	}
-
-	return r, nil
-}
+//
+//func NewRegisterUserRequest(u string, emailAddress string) (*http.Request, error) {
+//	b, err := json.Marshal(rest.RegisterUserRequest{
+//		Password:     "password",
+//		FirstName:    "FirstName",
+//		LastName:     "LastName",
+//		EmailAddress: emailAddress,
+//	})
+//	if err != nil {
+//		return nil, err
+//	}
+//
+//	r, err := http.NewRequest(http.MethodPost, u, bytes.NewReader(b))
+//	if err != nil {
+//		return nil, err
+//	}
+//
+//	return r, nil
+//}
 
 //
 //func TestLoadPerson(t *testing.T) {
@@ -272,29 +313,29 @@ func NewRegisterUserRequest(u string, emailAddress string) (*http.Request, error
 //	i.True(restErr.Code == int(rent.CodeNotExists))
 //}
 
-func registerUser(p *rest.RegisterUserRequest) (uuid.UUID, uuid.UUID, error) {
-	req, err := newRegisterUserRestRequest(p)
-	if err != nil {
-		return uuid.UUID{}, uuid.UUID{}, err
-	}
-
-	registerUserResp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return uuid.UUID{}, uuid.UUID{}, err
-	}
-
-	err = didReceiveStatusCode(registerUserResp, http.StatusCreated)
-	if err != nil {
-		return uuid.UUID{}, uuid.UUID{}, err
-	}
-
-	var userResp rest.RegisterUserResponse
-	err = json.NewDecoder(registerUserResp.Body).Decode(&userResp)
-	if err != nil {
-		return uuid.UUID{}, uuid.UUID{}, err
-	}
-	return userResp.AccountID, userResp.UserID, nil
-}
+//func registerUser(p *rest.RegisterUserRequest) (uuid.UUID, uuid.UUID, error) {
+//	req, err := newRegisterUserRestRequest(p)
+//	if err != nil {
+//		return uuid.UUID{}, uuid.UUID{}, err
+//	}
+//
+//	registerUserResp, err := http.DefaultClient.Do(req)
+//	if err != nil {
+//		return uuid.UUID{}, uuid.UUID{}, err
+//	}
+//
+//	err = didReceiveStatusCode(registerUserResp, http.StatusCreated)
+//	if err != nil {
+//		return uuid.UUID{}, uuid.UUID{}, err
+//	}
+//
+//	var userResp rest.RegisterUserResponse
+//	err = json.NewDecoder(registerUserResp.Body).Decode(&userResp)
+//	if err != nil {
+//		return uuid.UUID{}, uuid.UUID{}, err
+//	}
+//	return userResp.AccountID, userResp.UserID, nil
+//}
 
 //func loadPerson(pID uuid.UUID) (*rest.LoadPersonResponse, error) {
 //	u := getServiceURL() + "/person/" + pID.String()
@@ -323,16 +364,16 @@ func registerUser(p *rest.RegisterUserRequest) (uuid.UUID, uuid.UUID, error) {
 //	return &loadResp, nil
 //}
 
-func newRegisterUserRestRequest(r *rest.RegisterUserRequest) (*http.Request, error) {
-	u := getServiceURL() + "/user/register"
-	return newRequest(http.MethodPost, u, r)
-}
-
-func newDefaultRegisterUserRequest(ea string) *rest.RegisterUserRequest {
-	return &rest.RegisterUserRequest{
-		EmailAddress: ea,
-		Password:     "password",
-		FirstName:    "firstName",
-		LastName:     "lastName",
-	}
-}
+//func newRegisterUserRestRequest(r *rest.RegisterUserRequest) (*http.Request, error) {
+//	u := getServiceURL() + "/user/register"
+//	return newRequest(http.MethodPost, u, r)
+//}
+//
+//func newDefaultRegisterUserRequest(ea string) *rest.RegisterUserRequest {
+//	return &rest.RegisterUserRequest{
+//		EmailAddress: ea,
+//		Password:     "password",
+//		FirstName:    "firstName",
+//		LastName:     "lastName",
+//	}
+//}

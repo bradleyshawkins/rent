@@ -9,19 +9,10 @@ CREATE TABLE account(
 
 CREATE TRIGGER update_account_modified_at_column BEFORE INSERT OR UPDATE ON account FOR EACH ROW EXECUTE FUNCTION update_modified_at_column();
 
-CREATE TABLE role (
-    id INT NOT NULL PRIMARY KEY,
-    value TEXT NOT NULL
-);
-
-INSERT INTO role(id, value) VALUES (1, 'owner');
-INSERT INTO role(id, value) VALUES (2, 'write');
-INSERT INTO role(id, value) VALUES (3, 'read');
-
 CREATE TABLE membership (
     account_id UUID NOT NULL REFERENCES account(id),
     app_user_id UUID NOT NULL REFERENCES app_user(id),
-    role_id INT NOT NULL REFERENCES role(id),
+    role_id TEXT NOT NULL,
     PRIMARY KEY (account_id, app_user_id),
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     modified_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
