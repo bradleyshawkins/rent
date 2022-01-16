@@ -12,7 +12,9 @@ func (d *Database) CreateProperty(createFunc location.CreateFunc) error {
 		return err
 	}
 
-	defer tx.rollback()
+	defer func() {
+		err = tx.rollback()
+	}()
 
 	err = createFunc(tx)
 	if err != nil {

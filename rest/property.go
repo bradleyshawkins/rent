@@ -13,10 +13,6 @@ import (
 	uuid "github.com/satori/go.uuid"
 )
 
-const (
-	propertyID = "propertyID"
-)
-
 type RegisterPropertyRequest struct {
 	Name    string  `json:"name"`
 	Address Address `json:"address"`

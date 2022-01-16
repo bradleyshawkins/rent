@@ -18,26 +18,29 @@ import (
 )
 
 type Router struct {
-	router          *chi.Mux
+	Router          *chi.Mux
 	registrar       *identity.Registrar
+	userLoader      *identity.UserLoader
 	propertyCreator *location.PropertyCreator
 }
 
-func NewRouter(registrar *identity.Registrar, propertyCreator *location.PropertyCreator) *Router {
-	log.Println("Creating router")
+func NewRouter(registrar *identity.Registrar, userLoader *identity.UserLoader, propertyCreator *location.PropertyCreator) *Router {
+	log.Println("Creating Router")
 	c := chi.NewRouter()
 
 	p := &Router{
-		router:          c,
+		Router:          c,
 		registrar:       registrar,
+		userLoader:      userLoader,
 		propertyCreator: propertyCreator,
 	}
 
 	log.Println("Registering routes")
 	c.Get("/health", p.Health)
 	// User management
-	c.Post("/user", ErrorHandler(p.RegisterUser))
-	c.Post("/accounts/{accountID}/user", ErrorHandler(p.RegisterUserToAccount))
+	c.Post("/users", ErrorHandler(p.RegisterUser))
+	c.Get("/users/{userID}", ErrorHandler(p.LoadUser))
+	c.Post("/accounts/{accountID}/users", ErrorHandler(p.RegisterUserToAccount))
 	//c.Get("/user/{userID}", ErrorHandler(p.LoadUser))
 	//c.Delete("/account/{accountID}/user/{userID}", ErrorHandler(p.CancelUser))
 	//
@@ -51,7 +54,7 @@ func NewRouter(registrar *identity.Registrar, propertyCreator *location.Property
 func (r *Router) Start(ctx context.Context, port string) func(ctx context.Context) error {
 	srv := http.Server{
 		Addr:    ":" + port,
-		Handler: r.router,
+		Handler: r.Router,
 	}
 
 	go func() {
