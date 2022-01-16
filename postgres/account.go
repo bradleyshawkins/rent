@@ -5,7 +5,7 @@ import (
 )
 
 func (t *transaction) RegisterAccount(uID identity.UserID, a *identity.AccountRegistration) error {
-	_, err := t.tx.Exec(`INSERT INTO account(id, status) VALUES ($1, $2)`, a.ID, a.Status)
+	_, err := t.tx.Exec(`INSERT INTO account(id, status) VALUES ($1, $2)`, a.ID.AsUUID(), a.Status)
 	if err != nil {
 		return toRentError(err)
 	}
@@ -18,7 +18,7 @@ func (t *transaction) RegisterAccount(uID identity.UserID, a *identity.AccountRe
 }
 
 func (t *transaction) AddUserToAccount(aID identity.AccountID, uID identity.UserID, role identity.Role) error {
-	_, err := t.tx.Exec(`INSERT INTO membership(account_id, app_user_id, role_id) VALUES ($1, $2, $3)`, aID, uID, role)
+	_, err := t.tx.Exec(`INSERT INTO membership(account_id, app_user_id, role_id) VALUES ($1, $2, $3)`, aID.AsUUID(), uID.AsUUID(), role)
 	if err != nil {
 		return toRentError(err)
 	}

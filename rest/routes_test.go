@@ -9,6 +9,7 @@ import (
 	"github.com/bradleyshawkins/rent/postgres"
 	"github.com/bradleyshawkins/rent/rest"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"os"
 	"testing"
@@ -20,8 +21,10 @@ var (
 
 func TestMain(m *testing.M) {
 	// Create Database
-	db, err := postgres.NewDatabase("postgresql://postgres:password@localhost:5432/rent")
+	log.Println("Beginning integration tests")
+	db, err := postgres.NewDatabase("postgresql://postgres:password@localhost:5432/rent?sslmode=disable", "../postgres/schema")
 	if err != nil {
+		log.Println("Unable to create database connection. Error:", err)
 		os.Exit(999)
 	}
 	// Create registrar
@@ -31,7 +34,10 @@ func TestMain(m *testing.M) {
 	// Create Router
 	router = rest.NewRouter(r, l)
 
-	os.Exit(m.Run())
+	code := m.Run()
+
+	log.Println("Completed integration tests")
+	os.Exit(code)
 }
 
 func getServiceURL() string {

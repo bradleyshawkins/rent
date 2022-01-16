@@ -2,7 +2,9 @@ package rest
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
+	"net/mail"
 
 	"github.com/bradleyshawkins/rent/identity"
 
@@ -23,6 +25,46 @@ type RegisterUserRequest struct {
 	LastName     string `json:"lastName"`
 }
 
+func (r *RegisterUserRequest) validate() error {
+	var invalidFields []rent.InvalidField
+	if len(r.EmailAddress) == 0 {
+		invalidFields = append(invalidFields, rent.InvalidField{
+			Field:  "emailAddress",
+			Reason: rent.ReasonMissing,
+		})
+	} else {
+		if _, err := mail.ParseAddress(r.EmailAddress); err != nil {
+			invalidFields = append(invalidFields, rent.InvalidField{
+				Field:  "emailAddress",
+				Reason: rent.ReasonInvalid,
+			})
+		}
+	}
+	if len(r.Password) == 0 {
+		invalidFields = append(invalidFields, rent.InvalidField{
+			Field:  "password",
+			Reason: rent.ReasonMissing,
+		})
+	}
+	if len(r.FirstName) == 0 {
+		invalidFields = append(invalidFields, rent.InvalidField{
+			Field:  "firstName",
+			Reason: rent.ReasonMissing,
+		})
+	}
+	if len(r.LastName) == 0 {
+		invalidFields = append(invalidFields, rent.InvalidField{
+			Field:  "lastName",
+			Reason: rent.ReasonMissing,
+		})
+	}
+
+	if len(invalidFields) > 0 {
+		return rent.NewError(errors.New("invalid fields provided"), rent.WithInvalidFields(invalidFields...))
+	}
+	return nil
+}
+
 type RegisterUserResponse struct {
 	AccountID uuid.UUID `json:"accountID"`
 	UserID    uuid.UUID `json:"userID"`
@@ -33,6 +75,10 @@ func (l *Router) RegisterUser(w http.ResponseWriter, r *http.Request) error {
 	err := json.NewDecoder(r.Body).Decode(&rr)
 	if err != nil {
 		return rent.NewError(err, rent.WithInvalidPayload(), rent.WithMessage("unable to decode request"))
+	}
+
+	if err := rr.validate(); err != nil {
+		return err
 	}
 
 	user, account, err := l.registrar.Register(rr.EmailAddress, rr.FirstName, rr.LastName, rr.Password)

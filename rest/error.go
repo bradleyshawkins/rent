@@ -2,6 +2,7 @@ package rest
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 
@@ -16,6 +17,10 @@ type Error struct {
 type Errors interface {
 	Message() string
 	ErrorCode() string
+}
+
+func (e *Error) Error() string {
+	return fmt.Sprintf("Unable to execute handler. Code: %d, Message: %s", e.Code, e.Message)
 }
 
 func ErrorHandler(h func(w http.ResponseWriter, r *http.Request) error) http.HandlerFunc {

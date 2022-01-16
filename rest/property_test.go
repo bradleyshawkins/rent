@@ -2,153 +2,138 @@
 
 package rest_test
 
-import (
-	"encoding/json"
-	"fmt"
-	"io/ioutil"
-	"net/http"
-	"testing"
-
-	"github.com/bradleyshawkins/rent"
-
-	uuid "github.com/satori/go.uuid"
-
-	"github.com/bradleyshawkins/rent/rest"
-	"github.com/matryer/is"
-)
-
-func TestRegisterProperty(t *testing.T) {
-	i := is.New(t)
-
-	accountID, propertyID, err := registerUserAndProperty("testRegisterProperty_test@test.com", newDefaultRegisterPropertyRequest())
-	i.NoErr(err)
-
-	i.True(accountID != (uuid.UUID{}))
-	i.True(propertyID != (uuid.UUID{}))
-}
-
-func TestRegisterProperty_BadInput(t *testing.T) {
-	street1 := "street1"
-	street2 := "street2"
-	city := "city"
-	state := "state"
-	zipcode := "zipcode"
-	accountID := uuid.NewV4().String()
-
-	tests := []struct {
-		name      string
-		street1   string
-		street2   string
-		city      string
-		state     string
-		zipcode   string
-		accountID string
-	}{
-		{
-			name:    "Missing Street1",
-			street1: "", street2: street2, city: city, state: state, zipcode: zipcode, accountID: accountID,
-		},
-		{
-			name:    "Missing City",
-			street1: street1, street2: street2, city: "", state: state, zipcode: zipcode, accountID: accountID,
-		},
-		{
-			name:    "Missing State",
-			street1: street1, street2: street2, city: city, state: "", zipcode: zipcode, accountID: accountID,
-		},
-		{
-			name:    "Missing Zipcode",
-			street1: street1, street2: street2, city: city, state: state, zipcode: "", accountID: accountID,
-		},
-	}
-
-	for idx, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			i := is.New(t)
-
-			accountID, _, err := registerUser(newDefaultRegisterUserRequest(fmt.Sprintf("testRegisterProperty_%d_test@test.com", idx)))
-			i.NoErr(err)
-
-			prop := &rest.RegisterPropertyRequest{
-				Name: tt.name,
-				Address: rest.Address{
-					Street1: tt.street1,
-					Street2: tt.street2,
-					City:    tt.city,
-					State:   tt.state,
-					Zipcode: tt.zipcode,
-				},
-			}
-
-			req, err := newRegisterPropertyRestRequest(accountID, prop)
-			i.NoErr(err)
-
-			resp, err := http.DefaultClient.Do(req)
-			i.NoErr(err)
-
-			if resp.StatusCode != http.StatusBadRequest {
-				b, _ := ioutil.ReadAll(resp.Body)
-				t.Fatalf("Unexpected status code. StatusCode: %v, Payload: %v", resp.StatusCode, string(b))
-			}
-
-			var propResp rest.Error
-			err = json.NewDecoder(resp.Body).Decode(&propResp)
-			i.NoErr(err)
-
-			i.Equal(propResp.Code, int(rent.CodeInvalidField))
-		})
-	}
-}
-
-func TestRegisterProperty_BadAccountID(t *testing.T) {
-	tests := []struct {
-		name       string
-		accountID  string
-		statusCode int
-		code       int
-	}{
-		{
-			name:       "Missing accountID",
-			accountID:  "",
-			statusCode: http.StatusBadRequest,
-			code:       int(rent.CodeInvalidField),
-		},
-		{
-			name:       "Non-UUID accountID",
-			accountID:  "1234",
-			statusCode: http.StatusBadRequest,
-			code:       int(rent.CodeInvalidField),
-		},
-		{
-			name:       "Account doesn't exist",
-			accountID:  uuid.NewV4().String(),
-			statusCode: http.StatusConflict,
-			code:       int(rent.CodeRequiredEntityNotExists),
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			i := is.New(t)
-
-			u := getServiceURL() + fmt.Sprintf("/account/%s/property", tt.accountID)
-			req, err := newRequest(http.MethodPost, u, newDefaultRegisterPropertyRequest())
-			i.NoErr(err)
-
-			resp, err := http.DefaultClient.Do(req)
-			i.NoErr(err)
-
-			err = didReceiveStatusCode(resp, tt.statusCode)
-			i.NoErr(err)
-
-			var propResp rest.Error
-			err = json.NewDecoder(resp.Body).Decode(&propResp)
-			i.NoErr(err)
-
-			i.Equal(propResp.Code, int(tt.code))
-		})
-	}
-}
+//func TestRegisterProperty(t *testing.T) {
+//	i := is.New(t)
+//
+//	accountID, propertyID, err := registerUserAndProperty("testRegisterProperty_test@test.com", newDefaultRegisterPropertyRequest())
+//	i.NoErr(err)
+//
+//	i.True(accountID != (uuid.UUID{}))
+//	i.True(propertyID != (uuid.UUID{}))
+//}
+//
+//func TestRegisterProperty_BadInput(t *testing.T) {
+//	street1 := "street1"
+//	street2 := "street2"
+//	city := "city"
+//	state := "state"
+//	zipcode := "zipcode"
+//	accountID := uuid.NewV4().String()
+//
+//	tests := []struct {
+//		name      string
+//		street1   string
+//		street2   string
+//		city      string
+//		state     string
+//		zipcode   string
+//		accountID string
+//	}{
+//		{
+//			name:    "Missing Street1",
+//			street1: "", street2: street2, city: city, state: state, zipcode: zipcode, accountID: accountID,
+//		},
+//		{
+//			name:    "Missing City",
+//			street1: street1, street2: street2, city: "", state: state, zipcode: zipcode, accountID: accountID,
+//		},
+//		{
+//			name:    "Missing State",
+//			street1: street1, street2: street2, city: city, state: "", zipcode: zipcode, accountID: accountID,
+//		},
+//		{
+//			name:    "Missing Zipcode",
+//			street1: street1, street2: street2, city: city, state: state, zipcode: "", accountID: accountID,
+//		},
+//	}
+//
+//	for idx, tt := range tests {
+//		t.Run(tt.name, func(t *testing.T) {
+//			i := is.New(t)
+//
+//			accountID, _, err := registerUser(newDefaultRegisterUserRequest(fmt.Sprintf("testRegisterProperty_%d_test@test.com", idx)))
+//			i.NoErr(err)
+//
+//			prop := &rest.RegisterPropertyRequest{
+//				Name: tt.name,
+//				Address: rest.Address{
+//					Street1: tt.street1,
+//					Street2: tt.street2,
+//					City:    tt.city,
+//					State:   tt.state,
+//					Zipcode: tt.zipcode,
+//				},
+//			}
+//
+//			req, err := newRegisterPropertyRestRequest(accountID, prop)
+//			i.NoErr(err)
+//
+//			resp, err := http.DefaultClient.Do(req)
+//			i.NoErr(err)
+//
+//			if resp.StatusCode != http.StatusBadRequest {
+//				b, _ := ioutil.ReadAll(resp.Body)
+//				t.Fatalf("Unexpected status code. StatusCode: %v, Payload: %v", resp.StatusCode, string(b))
+//			}
+//
+//			var propResp rest.Error
+//			err = json.NewDecoder(resp.Body).Decode(&propResp)
+//			i.NoErr(err)
+//
+//			i.Equal(propResp.Code, int(rent.CodeInvalidField))
+//		})
+//	}
+//}
+//
+//func TestRegisterProperty_BadAccountID(t *testing.T) {
+//	tests := []struct {
+//		name       string
+//		accountID  string
+//		statusCode int
+//		code       int
+//	}{
+//		{
+//			name:       "Missing accountID",
+//			accountID:  "",
+//			statusCode: http.StatusBadRequest,
+//			code:       int(rent.CodeInvalidField),
+//		},
+//		{
+//			name:       "Non-UUID accountID",
+//			accountID:  "1234",
+//			statusCode: http.StatusBadRequest,
+//			code:       int(rent.CodeInvalidField),
+//		},
+//		{
+//			name:       "Account doesn't exist",
+//			accountID:  uuid.NewV4().String(),
+//			statusCode: http.StatusConflict,
+//			code:       int(rent.CodeRequiredEntityNotExists),
+//		},
+//	}
+//
+//	for _, tt := range tests {
+//		t.Run(tt.name, func(t *testing.T) {
+//			i := is.New(t)
+//
+//			u := getServiceURL() + fmt.Sprintf("/account/%s/property", tt.accountID)
+//			req, err := newRequest(http.MethodPost, u, newDefaultRegisterPropertyRequest())
+//			i.NoErr(err)
+//
+//			resp, err := http.DefaultClient.Do(req)
+//			i.NoErr(err)
+//
+//			err = didReceiveStatusCode(resp, tt.statusCode)
+//			i.NoErr(err)
+//
+//			var propResp rest.Error
+//			err = json.NewDecoder(resp.Body).Decode(&propResp)
+//			i.NoErr(err)
+//
+//			i.Equal(propResp.Code, int(tt.code))
+//		})
+//	}
+//}
 
 //
 //func TestLoadProperty(t *testing.T) {
@@ -261,44 +246,44 @@ func TestRegisterProperty_BadAccountID(t *testing.T) {
 //		})
 //	}
 //}
-
-func registerUserAndProperty(emailAddress string, prop *rest.RegisterPropertyRequest) (uuid.UUID, uuid.UUID, error) {
-	accountID, _, err := registerUser(newDefaultRegisterUserRequest(emailAddress))
-	if err != nil {
-		return uuid.UUID{}, uuid.UUID{}, err
-	}
-
-	propertyID, err := registerProperty(accountID, prop)
-	if err != nil {
-		return uuid.UUID{}, uuid.UUID{}, err
-	}
-
-	return accountID, propertyID, nil
-}
-
-func registerProperty(accountID uuid.UUID, prop *rest.RegisterPropertyRequest) (uuid.UUID, error) {
-	req, err := newRegisterPropertyRestRequest(accountID, prop)
-	if err != nil {
-		return uuid.UUID{}, err
-	}
-
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return uuid.UUID{}, err
-	}
-
-	err = didReceiveStatusCode(resp, http.StatusCreated)
-	if err != nil {
-		return uuid.UUID{}, err
-	}
-
-	var propResp rest.RegisterPropertyResponse
-	err = json.NewDecoder(resp.Body).Decode(&propResp)
-	if err != nil {
-		return uuid.UUID{}, err
-	}
-	return propResp.PropertyID, nil
-}
+//
+//func registerUserAndProperty(emailAddress string, prop *rest.RegisterPropertyRequest) (uuid.UUID, uuid.UUID, error) {
+//	accountID, _, err := registerUser(newDefaultRegisterUserRequest(emailAddress))
+//	if err != nil {
+//		return uuid.UUID{}, uuid.UUID{}, err
+//	}
+//
+//	propertyID, err := registerProperty(accountID, prop)
+//	if err != nil {
+//		return uuid.UUID{}, uuid.UUID{}, err
+//	}
+//
+//	return accountID, propertyID, nil
+//}
+//
+//func registerProperty(accountID uuid.UUID, prop *rest.RegisterPropertyRequest) (uuid.UUID, error) {
+//	req, err := newRegisterPropertyRestRequest(accountID, prop)
+//	if err != nil {
+//		return uuid.UUID{}, err
+//	}
+//
+//	resp, err := http.DefaultClient.Do(req)
+//	if err != nil {
+//		return uuid.UUID{}, err
+//	}
+//
+//	err = didReceiveStatusCode(resp, http.StatusCreated)
+//	if err != nil {
+//		return uuid.UUID{}, err
+//	}
+//
+//	var propResp rest.RegisterPropertyResponse
+//	err = json.NewDecoder(resp.Body).Decode(&propResp)
+//	if err != nil {
+//		return uuid.UUID{}, err
+//	}
+//	return propResp.PropertyID, nil
+//}
 
 //func loadProperty(accountID, propertyID uuid.UUID) (*rest.LoadPropertyResponse, error) {
 //	u := getServiceURL() + fmt.Sprintf("/account/%s/property/%s", accountID, propertyID)
@@ -327,25 +312,25 @@ func registerProperty(accountID uuid.UUID, prop *rest.RegisterPropertyRequest) (
 //	return &loadResp, nil
 //}
 
-func newDefaultRegisterPropertyRequest() *rest.RegisterPropertyRequest {
-	return &rest.RegisterPropertyRequest{
-		Name: "test name",
-		Address: rest.Address{
-			Street1: "street1",
-			Street2: "street2",
-			City:    "city",
-			State:   "state",
-			Zipcode: "zipcode",
-		},
-	}
-}
-
-func newRegisterPropertyRestRequest(accountID uuid.UUID, prop *rest.RegisterPropertyRequest) (*http.Request, error) {
-	u := getServiceURL() + fmt.Sprintf("/account/%s/property", accountID)
-	return newRequest(http.MethodPost, u, prop)
-}
-
-func newRemovePropertyRestRequest(accountID uuid.UUID, propertyID uuid.UUID) (*http.Request, error) {
-	u := getServiceURL() + fmt.Sprintf("/account/%s/property/%s", accountID, propertyID)
-	return newRequest(http.MethodDelete, u, http.NoBody)
-}
+//func newDefaultRegisterPropertyRequest() *rest.RegisterPropertyRequest {
+//	return &rest.RegisterPropertyRequest{
+//		Name: "test name",
+//		Address: rest.Address{
+//			Street1: "street1",
+//			Street2: "street2",
+//			City:    "city",
+//			State:   "state",
+//			Zipcode: "zipcode",
+//		},
+//	}
+//}
+//
+//func newRegisterPropertyRestRequest(accountID uuid.UUID, prop *rest.RegisterPropertyRequest) (*http.Request, error) {
+//	u := getServiceURL() + fmt.Sprintf("/account/%s/property", accountID)
+//	return newRequest(http.MethodPost, u, prop)
+//}
+//
+//func newRemovePropertyRestRequest(accountID uuid.UUID, propertyID uuid.UUID) (*http.Request, error) {
+//	u := getServiceURL() + fmt.Sprintf("/account/%s/property/%s", accountID, propertyID)
+//	return newRequest(http.MethodDelete, u, http.NoBody)
+//}

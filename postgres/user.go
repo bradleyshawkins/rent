@@ -34,7 +34,7 @@ func (t *transaction) RegisterUser(user *identity.UserRegistration) error {
 		return toRentError(err)
 	}
 
-	_, err = t.tx.Exec("INSERT INTO app_user(id, email_address, password, status, app_user_details_id) VALUES ($1, $2, $3, $4, $5)", user.ID, user.EmailAddress, user.Password, user.Status, detailsID)
+	_, err = t.tx.Exec("INSERT INTO app_user(id, email_address, password, status, app_user_details_id) VALUES ($1, $2, $3, $4, $5)", user.ID.AsUUID(), user.EmailAddress.Address, user.Password, user.Status, detailsID)
 	if err != nil {
 		return toRentError(err)
 	}
