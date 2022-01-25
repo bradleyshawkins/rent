@@ -175,7 +175,7 @@ func TestLoadPersonIntegration(t *testing.T) {
 	i.True(rrs.UserID != uuid.Nil)
 	i.True(rrs.AccountID != uuid.Nil)
 
-	// Load User
+	// Load user
 	addr := serverAddr + "/users/" + rrs.UserID.String()
 	loadReq, err := http.NewRequest(http.MethodGet, addr, http.NoBody)
 	i.NoErr(err)

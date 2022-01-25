@@ -4,7 +4,7 @@ import (
 	"github.com/bradleyshawkins/rent/identity"
 )
 
-func (t *transaction) RegisterAccount(uID identity.UserID, a *identity.AccountRegistration) error {
+func (t *transaction) RegisterAccount(uID identity.UserID, a *identity.Account) error {
 	_, err := t.tx.Exec(`INSERT INTO account(id, status) VALUES ($1, $2)`, a.ID.AsUUID(), a.Status)
 	if err != nil {
 		return toRentError(err)
@@ -25,7 +25,7 @@ func (t *transaction) AddUserToAccount(aID identity.AccountID, uID identity.User
 	return nil
 }
 
-//func registerAccount(db dbConn, a *rent.Account) error {
+//func registerAccount(db dbConn, a *rent.account) error {
 //	_, err := db.Exec(`INSERT INTO account(id, status) VALUES ($1, $2)`, a.ID, a.Status)
 //	if err != nil {
 //		return toRentError(err)

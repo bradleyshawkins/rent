@@ -103,7 +103,7 @@ package rest_test
 //			code:       int(rent.CodeInvalidField),
 //		},
 //		{
-//			name:       "Account doesn't exist",
+//			name:       "account doesn't exist",
 //			accountID:  uuid.NewV4().String(),
 //			statusCode: http.StatusConflict,
 //			code:       int(rent.CodeRequiredEntityNotExists),

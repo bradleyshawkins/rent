@@ -21,7 +21,7 @@ func main() {
 	log.Println("Starting rent service")
 	ctx := context.Background()
 
-	c, err := config.ParseConfig()
+	c, err := config.Parse()
 	if err != nil {
 		log.Println(fmt.Errorf("unable to initialize config. Error: %v", err))
 		os.Exit(0)
@@ -34,7 +34,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	userRegistrationService := identity.NewRegistrar(db)
+	userRegistrationService := identity.NewSignUpManager(db)
 	userLoader := identity.NewUserRetriever(db)
 	propertyCreator := location.NewCreator(db)
 
@@ -56,10 +56,8 @@ func main() {
 
 func waitForShutdown(ctx context.Context, stopFunc func(ctx context.Context) error) error {
 	c := make(chan os.Signal, 1)
-	signal.Notify(c, os.Interrupt, os.Kill, syscall.SIGTERM)
-	select {
-	case <-c:
-	}
+	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+	<-c
 
 	if err := stopFunc(ctx); err != nil {
 		return err
