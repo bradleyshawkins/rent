@@ -35,7 +35,7 @@ func (d *Database) LoadUser(uID identity.UserID) (*identity.User, error) {
 }
 
 // Register provides a transaction around registering accounts and users
-func (d *Database) Register(registrationFunc identity.RegistrationFunc) error {
+func (d *Database) SignUp(suf *identity.SignUpForm) error {
 	tx, err := d.begin()
 	if err != nil {
 		return err
@@ -45,7 +45,7 @@ func (d *Database) Register(registrationFunc identity.RegistrationFunc) error {
 		err = tx.rollback()
 	}()
 
-	err = registrationFunc(tx)
+	err = suf.SignUp(tx)
 	if err != nil {
 		return err
 	}
@@ -57,14 +57,14 @@ func (d *Database) Register(registrationFunc identity.RegistrationFunc) error {
 	return nil
 }
 
-func (t *transaction) RegisterUser(user *identity.UserRegistration) error {
+func (t *transaction) RegisterUser(user *identity.User, c *identity.Credentials) error {
 	detailsID := uuid.NewV4()
 	_, err := t.tx.Exec(`INSERT INTO app_user_details(id, first_name, last_name) VALUES ($1, $2, $3)`, detailsID, user.FirstName, user.LastName)
 	if err != nil {
 		return toRentError(err)
 	}
 
-	_, err = t.tx.Exec("INSERT INTO app_user(id, email_address, password, status, app_user_details_id) VALUES ($1, $2, $3, $4, $5)", user.ID.AsUUID(), user.EmailAddress.Address, user.Password, user.Status, detailsID)
+	_, err = t.tx.Exec("INSERT INTO app_user(id, email_address, password, status, app_user_details_id) VALUES ($1, $2, $3, $4, $5)", user.ID.AsUUID(), user.EmailAddress.Address, c.Password, user.Status, detailsID)
 	if err != nil {
 		return toRentError(err)
 	}

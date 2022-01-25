@@ -37,7 +37,7 @@ func TestMain(m *testing.M) {
 		os.Exit(999)
 	}
 	// Create registrar
-	r := identity.NewRegistrar(db)
+	r := identity.NewSignUpManager(db)
 	ul := identity.NewUserRetriever(db)
 	// Create location creator
 	l := location.NewCreator(db)

@@ -19,12 +19,12 @@ import (
 
 type Router struct {
 	Router          *chi.Mux
-	registrar       *identity.Registrar
+	registrar       *identity.SignUpManager
 	userLoader      *identity.UserLoader
 	propertyCreator *location.PropertyCreator
 }
 
-func NewRouter(registrar *identity.Registrar, userLoader *identity.UserLoader, propertyCreator *location.PropertyCreator) *Router {
+func NewRouter(registrar *identity.SignUpManager, userLoader *identity.UserLoader, propertyCreator *location.PropertyCreator) *Router {
 	log.Println("Creating Router")
 	c := chi.NewRouter()
 
@@ -37,10 +37,10 @@ func NewRouter(registrar *identity.Registrar, userLoader *identity.UserLoader, p
 
 	log.Println("Registering routes")
 	c.Get("/health", p.Health)
-	// User management
+	// user management
 	c.Post("/users", ErrorHandler(p.RegisterUser))
 	c.Get("/users/{userID}", ErrorHandler(p.LoadUser))
-	c.Post("/accounts/{accountID}/users", ErrorHandler(p.RegisterUserToAccount))
+	//c.Post("/accounts/{accountID}/users", ErrorHandler(p.RegisterUserToAccount))
 	//c.Get("/user/{userID}", ErrorHandler(p.LoadUser))
 	//c.Delete("/account/{accountID}/user/{userID}", ErrorHandler(p.CancelUser))
 	//

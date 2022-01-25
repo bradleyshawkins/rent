@@ -45,3 +45,8 @@ var roleMap = map[string]Role{
 	"Writer": RoleWriter,
 	"Reader": RoleReader,
 }
+
+type Account struct {
+	ID     AccountID
+	Status AccountStatus
+}

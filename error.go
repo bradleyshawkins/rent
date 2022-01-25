@@ -40,7 +40,7 @@ const (
 )
 
 const (
-	UnauthenticatedMsg         = "User is not authenticated"
+	UnauthenticatedMsg         = "user is not authenticated"
 	InvalidFieldMsg            = "Invalid field was provided"
 	InternalMsg                = "Unexpected internal error occurred"
 	DuplicateMsg               = "Entity already exists"

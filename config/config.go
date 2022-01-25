@@ -13,7 +13,7 @@ type Config struct {
 	Port             string `envconfig:"PORT" default:"8080"`
 }
 
-func ParseConfig() (*Config, error) {
+func Parse() (*Config, error) {
 	log.Println("Parsing config")
 	var c Config
 	err := envconfig.Process("", &c)
