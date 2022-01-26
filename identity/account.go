@@ -47,6 +47,7 @@ var roleMap = map[string]Role{
 }
 
 type Account struct {
-	ID     AccountID
-	Status AccountStatus
+	ID      AccountID
+	Status  AccountStatus
+	Members map[uuid.UUID]Role
 }

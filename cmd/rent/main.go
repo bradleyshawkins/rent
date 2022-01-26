@@ -8,11 +8,9 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/bradleyshawkins/rent/location"
-
-	"github.com/bradleyshawkins/rent/identity"
-
 	"github.com/bradleyshawkins/rent/config"
+	"github.com/bradleyshawkins/rent/identity"
+	"github.com/bradleyshawkins/rent/location"
 	"github.com/bradleyshawkins/rent/postgres"
 	"github.com/bradleyshawkins/rent/rest"
 )
@@ -24,21 +22,21 @@ func main() {
 	c, err := config.Parse()
 	if err != nil {
 		log.Println(fmt.Errorf("unable to initialize config. Error: %v", err))
-		os.Exit(0)
+		os.Exit(1)
 	}
 
 	log.Println("Initializing database connection")
 	db, err := postgres.NewDatabase(c.ConnectionString, c.MigrationPath)
 	if err != nil {
 		log.Println("unable to connect to database. Error:", err)
-		os.Exit(1)
+		os.Exit(2)
 	}
 
-	userRegistrationService := identity.NewSignUpManager(db)
-	userLoader := identity.NewUserRetriever(db)
+	signupManager := identity.NewSignUpManager(db)
+	loadManager := identity.NewLoadManager(db)
 	propertyCreator := location.NewCreator(db)
 
-	router := rest.NewRouter(userRegistrationService, userLoader, propertyCreator)
+	router := rest.NewRouter(signupManager, loadManager, propertyCreator)
 
 	stop := router.Start(context.Background(), c.Port)
 	if err != nil {

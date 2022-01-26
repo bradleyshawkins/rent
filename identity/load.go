@@ -1,17 +1,17 @@
 package identity
 
-type userLoader interface {
+type loader interface {
 	LoadUser(userID UserID) (*User, error)
 }
 
-type UserLoader struct {
-	r userLoader
+type LoadManager struct {
+	r loader
 }
 
-func NewUserRetriever(r userLoader) *UserLoader {
-	return &UserLoader{r: r}
+func NewLoadManager(r loader) *LoadManager {
+	return &LoadManager{r: r}
 }
 
-func (u *UserLoader) LoadUser(userID UserID) (*User, error) {
+func (u *LoadManager) LoadUser(userID UserID) (*User, error) {
 	return u.r.LoadUser(userID)
 }

@@ -19,26 +19,26 @@ const (
 )
 
 type RegisterUserRequest struct {
-	EmailAddress string `json:"emailAddress"`
+	Username     string `json:"username"`
 	Password     string `json:"password"`
+	EmailAddress string `json:"emailAddress"`
 	FirstName    string `json:"firstName"`
 	LastName     string `json:"lastName"`
 }
 
 func (r *RegisterUserRequest) validate() error {
 	var invalidFields []rent.InvalidField
+	if len(r.Username) == 0 {
+		invalidFields = append(invalidFields, rent.InvalidField{
+			Field:  "username",
+			Reason: rent.ReasonMissing,
+		})
+	}
 	if len(r.EmailAddress) == 0 {
 		invalidFields = append(invalidFields, rent.InvalidField{
 			Field:  "emailAddress",
 			Reason: rent.ReasonMissing,
 		})
-	} else {
-		if _, err := mail.ParseAddress(r.EmailAddress); err != nil {
-			invalidFields = append(invalidFields, rent.InvalidField{
-				Field:  "emailAddress",
-				Reason: rent.ReasonInvalid,
-			})
-		}
 	}
 	if len(r.Password) == 0 {
 		invalidFields = append(invalidFields, rent.InvalidField{
@@ -81,7 +81,15 @@ func (l *Router) RegisterUser(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	user, err := l.registrar.SignUp(rr.EmailAddress, rr.FirstName, rr.LastName, rr.Password)
+	emailAddress, err := mail.ParseAddress(rr.EmailAddress)
+	if err != nil {
+		return rent.NewError(err, rent.WithInvalidFields(rent.InvalidField{
+			Field:  "emailAddress",
+			Reason: rent.ReasonInvalid,
+		}))
+	}
+
+	user, err := l.registrar.SignUp(rr.Username, rr.Password, emailAddress, rr.FirstName, rr.LastName)
 	if err != nil {
 		return err
 	}

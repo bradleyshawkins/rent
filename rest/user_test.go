@@ -18,6 +18,7 @@ func TestRegisterUserIntegration(t *testing.T) {
 	i := is.New(t)
 
 	user := rest.RegisterUserRequest{
+		Username:     faker.Username(),
 		EmailAddress: faker.Email(),
 		Password:     faker.Password(),
 		FirstName:    faker.FirstName(),
@@ -50,6 +51,7 @@ func TestRegisterUser_EmailAddressExistsIntegration(t *testing.T) {
 	email := faker.Email()
 
 	user := rest.RegisterUserRequest{
+		Username:     faker.Username(),
 		EmailAddress: email,
 		Password:     faker.Password(),
 		FirstName:    faker.FirstName(),
@@ -74,6 +76,7 @@ func TestRegisterUser_EmailAddressExistsIntegration(t *testing.T) {
 	i.True(rrs.AccountID != uuid.Nil)
 
 	dupUser := rest.RegisterUserRequest{
+		Username:     faker.Username(),
 		EmailAddress: email,
 		Password:     faker.Password(),
 		FirstName:    faker.FirstName(),
@@ -103,22 +106,25 @@ func TestRegisterUser_EmailAddressExistsIntegration(t *testing.T) {
 func TestRegisterUser_MissingInputIntegration(t *testing.T) {
 	tests := []struct {
 		name         string
+		username     string
 		password     string
 		firstName    string
 		lastName     string
 		emailAddress string
 	}{
-		{name: "Missing Password", firstName: "firstName", lastName: "lastName", emailAddress: "test.address@test.com"},
-		{name: "Missing FirstName", password: "password", lastName: "lastName", emailAddress: "test.address@test.com"},
-		{name: "Missing LastName", password: "password", firstName: "firstName", emailAddress: "test.address@test.com"},
-		{name: "Missing EmailAddress", password: "password", firstName: "firstName", lastName: "lastName"},
-		{name: "Invalid EmailAddress", password: "password", firstName: "firstName", lastName: "lastName", emailAddress: "test"},
+		{name: "Missing Username", password: "password", firstName: "firstName", lastName: "lastName", emailAddress: "emailAddress"},
+		{name: "Missing Password", username: "username", firstName: "firstName", lastName: "lastName", emailAddress: "test.address@test.com"},
+		{name: "Missing FirstName", username: "username", password: "password", lastName: "lastName", emailAddress: "test.address@test.com"},
+		{name: "Missing LastName", username: "username", password: "password", firstName: "firstName", emailAddress: "test.address@test.com"},
+		{name: "Missing EmailAddress", username: "username", password: "password", firstName: "firstName", lastName: "lastName"},
+		{name: "Invalid EmailAddress", username: "username", password: "password", firstName: "firstName", lastName: "lastName", emailAddress: "test"},
 	}
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			i := is.New(t)
 			l := rest.RegisterUserRequest{
+				Username:     test.username,
 				Password:     test.password,
 				FirstName:    test.firstName,
 				LastName:     test.lastName,
@@ -152,6 +158,7 @@ func TestLoadPersonIntegration(t *testing.T) {
 
 	// Create user
 	user := rest.RegisterUserRequest{
+		Username:     faker.Username(),
 		EmailAddress: faker.Email(),
 		Password:     faker.Password(),
 		FirstName:    faker.FirstName(),
