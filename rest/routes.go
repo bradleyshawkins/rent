@@ -20,11 +20,11 @@ import (
 type Router struct {
 	Router          *chi.Mux
 	registrar       *identity.SignUpManager
-	userLoader      *identity.UserLoader
+	userLoader      *identity.LoadManager
 	propertyCreator *location.PropertyCreator
 }
 
-func NewRouter(registrar *identity.SignUpManager, userLoader *identity.UserLoader, propertyCreator *location.PropertyCreator) *Router {
+func NewRouter(registrar *identity.SignUpManager, userLoader *identity.LoadManager, propertyCreator *location.PropertyCreator) *Router {
 	log.Println("Creating Router")
 	c := chi.NewRouter()
 

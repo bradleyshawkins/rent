@@ -2,11 +2,12 @@ package identity_test
 
 import (
 	"errors"
+	"net/mail"
+	"testing"
+
 	"github.com/bradleyshawkins/rent/identity"
 	"github.com/bxcodec/faker/v3"
 	"github.com/matryer/is"
-	"net/mail"
-	"testing"
 )
 
 type mockUserLoader struct {
@@ -37,7 +38,7 @@ func TestLoadUser(t *testing.T) {
 		loadUserRetVal: expected,
 		loadUserError:  nil,
 	}
-	ul := identity.NewUserRetriever(m)
+	ul := identity.NewLoadManager(m)
 
 	actual, err := ul.LoadUser(expected.ID)
 	i.NoErr(err)
@@ -53,7 +54,7 @@ func TestLoadUser_Error(t *testing.T) {
 		loadUserRetVal: nil,
 		loadUserError:  errors.New("error loading user"),
 	}
-	ul := identity.NewUserRetriever(m)
+	ul := identity.NewLoadManager(m)
 
 	_, err := ul.LoadUser(identity.NewUserID())
 	i.True(err != nil)

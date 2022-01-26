@@ -4,6 +4,6 @@ deps.down:
 	docker-compose down -v
 
 test.unit:
-	go test ./... -v -short
+	go test ./... -short
 test.integration: deps.down
 	./dev/integration.sh

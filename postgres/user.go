@@ -12,7 +12,7 @@ import (
 func (d *Database) LoadUser(uID identity.UserID) (*identity.User, error) {
 	var firstName, lastName, emailAddress string
 	var status identity.UserStatus
-	err := d.db.QueryRow(`SELECT aud.first_name, aud.last_name, au.email_address, au.status
+	err := d.db.QueryRow(`SELECT aud.first_name, aud.last_name, aud.email_address, au.status
 							FROM app_user au
 							INNER JOIN app_user_details aud ON au.app_user_details_id = aud.id
 							WHERE au.id = $1`, uID.AsUUID()).Scan(&firstName, &lastName, &emailAddress, &status)
@@ -34,7 +34,7 @@ func (d *Database) LoadUser(uID identity.UserID) (*identity.User, error) {
 	}, nil
 }
 
-// Register provides a transaction around registering accounts and users
+// SignUp provides a transaction around the sign up process
 func (d *Database) SignUp(suf *identity.SignUpForm) error {
 	tx, err := d.begin()
 	if err != nil {
@@ -59,15 +59,21 @@ func (d *Database) SignUp(suf *identity.SignUpForm) error {
 
 func (t *transaction) RegisterUser(user *identity.User, c *identity.Credentials) error {
 	detailsID := uuid.NewV4()
-	_, err := t.tx.Exec(`INSERT INTO app_user_details(id, first_name, last_name) VALUES ($1, $2, $3)`, detailsID, user.FirstName, user.LastName)
+	_, err := t.tx.Exec(`INSERT INTO app_user_details(id, first_name, last_name, email_address) VALUES ($1, $2, $3, $4)`, detailsID, user.FirstName, user.LastName, user.EmailAddress.Address)
 	if err != nil {
 		return toRentError(err)
 	}
 
-	_, err = t.tx.Exec("INSERT INTO app_user(id, email_address, password, status, app_user_details_id) VALUES ($1, $2, $3, $4, $5)", user.ID.AsUUID(), user.EmailAddress.Address, c.Password, user.Status, detailsID)
+	credentialsID := uuid.NewV4()
+	_, err = t.tx.Exec(`INSERT INTO app_user_credentials(id, username, password) VALUES ($1, $2, $3)`, credentialsID, c.Username, c.Password)
 	if err != nil {
 		return toRentError(err)
 	}
 
-	return err
+	_, err = t.tx.Exec("INSERT INTO app_user(id, status, app_user_credentials_id, app_user_details_id) VALUES ($1, $2, $3, $4)", user.ID.AsUUID(), user.Status, credentialsID, detailsID)
+	if err != nil {
+		return toRentError(err)
+	}
+
+	return nil
 }

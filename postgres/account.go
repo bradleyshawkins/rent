@@ -4,16 +4,16 @@ import (
 	"github.com/bradleyshawkins/rent/identity"
 )
 
-func (t *transaction) RegisterAccount(uID identity.UserID, a *identity.Account) error {
+func (d *Database) LoadAccount(accountID identity.AccountID) (*identity.Account, error) {
+	return nil, nil
+}
+
+func (t *transaction) RegisterAccount(a *identity.Account) error {
 	_, err := t.tx.Exec(`INSERT INTO account(id, status) VALUES ($1, $2)`, a.ID.AsUUID(), a.Status)
 	if err != nil {
 		return toRentError(err)
 	}
 
-	err = t.AddUserToAccount(a.ID, uID, identity.RoleOwner)
-	if err != nil {
-		return err
-	}
 	return nil
 }
 

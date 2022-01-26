@@ -38,7 +38,7 @@ func TestMain(m *testing.M) {
 	}
 	// Create registrar
 	r := identity.NewSignUpManager(db)
-	ul := identity.NewUserRetriever(db)
+	ul := identity.NewLoadManager(db)
 	// Create location creator
 	l := location.NewCreator(db)
 	// Create Router

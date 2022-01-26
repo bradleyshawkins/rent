@@ -2,14 +2,12 @@ package identity
 
 import (
 	"net/mail"
-
-	"github.com/bradleyshawkins/rent"
 )
 
 // signUpSteps contains all methods used to sign up for the service
 type signUpSteps interface {
 	RegisterUser(u *User, c *Credentials) error
-	RegisterAccount(userID UserID, a *Account) error
+	RegisterAccount(a *Account) error
 	AddUserToAccount(accountID AccountID, u UserID, role Role) error
 }
 
@@ -27,7 +25,7 @@ func (s *SignUpForm) SignUp(sus signUpSteps) error {
 		return err
 	}
 
-	err = sus.RegisterAccount(s.user.ID, s.account)
+	err = sus.RegisterAccount(s.account)
 	if err != nil {
 		return err
 	}
@@ -55,21 +53,15 @@ func NewSignUpManager(uc signUpper) *SignUpManager {
 }
 
 // SignUp creates the types needed for signing off and kicks off the signing up steps
-func (u *SignUpManager) SignUp(emailAddress string, firstName, lastName string, password string) (*User, error) {
-	addr, err := mail.ParseAddress(emailAddress)
-	if err != nil {
-		return nil, rent.NewError(err, rent.WithMessage("invalid email address"),
-			rent.WithInvalidFields(rent.InvalidField{Field: "emailAddress", Reason: rent.ReasonInvalid}))
-	}
-
+func (u *SignUpManager) SignUp(username string, password string, emailAddress *mail.Address, firstName, lastName string) (*User, error) {
 	suf := &SignUpForm{
 		credentials: &Credentials{
-			Username: addr.Address,
+			Username: username,
 			Password: password,
 		},
 		user: &User{
 			ID:           NewUserID(),
-			EmailAddress: addr,
+			EmailAddress: emailAddress,
 			FirstName:    firstName,
 			LastName:     lastName,
 			Status:       UserActive,
@@ -80,7 +72,7 @@ func (u *SignUpManager) SignUp(emailAddress string, firstName, lastName string, 
 		},
 	}
 
-	err = u.su.SignUp(suf)
+	err := u.su.SignUp(suf)
 	if err != nil {
 		return nil, err
 	}

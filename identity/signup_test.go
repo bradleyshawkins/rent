@@ -2,6 +2,7 @@ package identity_test
 
 import (
 	"errors"
+	"net/mail"
 	"testing"
 
 	"github.com/matryer/is"
@@ -28,8 +29,7 @@ func (m *mockUserCreatorService) RegisterUser(u *identity.User, c *identity.Cred
 	return m.RegisterUserError
 }
 
-func (m *mockUserCreatorService) RegisterAccount(pID identity.UserID, a *identity.Account) error {
-	m.RegisterAccountUserID = pID
+func (m *mockUserCreatorService) RegisterAccount(a *identity.Account) error {
 	m.RegisterAccountAccountRegistration = a
 	return m.RegisterAccountError
 }
@@ -54,12 +54,13 @@ func TestRegisterUser(t *testing.T) {
 	mpcs := &mockUserCreatorService{}
 	mpc := &mockUserCreator{mpcs}
 	registrar := identity.NewSignUpManager(mpc)
-	emailAddress := "email.address@test.com"
+	emailAddress, _ := mail.ParseAddress("email.address@test.com")
 	firstName := "First"
 	lastName := "Last"
+	username := "username"
 	password := "Password"
 
-	user, err := registrar.SignUp(emailAddress, firstName, lastName, password)
+	user, err := registrar.SignUp(username, password, emailAddress, firstName, lastName)
 	if err != nil {
 		t.Fatal("Unexpected error occurred. Error:", err)
 	}
@@ -70,7 +71,7 @@ func TestRegisterUser(t *testing.T) {
 
 	t.Log("user:", user)
 
-	i.Equal(user.EmailAddress.Address, emailAddress)
+	i.Equal(user.EmailAddress.Address, emailAddress.Address)
 	i.Equal(user.FirstName, firstName)
 	i.Equal(user.LastName, lastName)
 	i.True(!user.ID.IsZero())
@@ -105,7 +106,9 @@ func TestRegisterUser_Fail(t *testing.T) {
 
 			registrar := identity.NewSignUpManager(mpc)
 
-			user, err := registrar.SignUp("email.address@test.com", "First", "Last", "Password")
+			emailAddress, _ := mail.ParseAddress("email.address@test.com")
+
+			user, err := registrar.SignUp("username", "password", emailAddress, "First", "Last")
 			if err == nil {
 				t.Error("Received a nil error. Should have received an error")
 			}
