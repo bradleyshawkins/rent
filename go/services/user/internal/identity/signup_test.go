@@ -5,36 +5,36 @@ import (
 	"net/mail"
 	"testing"
 
-	"github.com/matryer/is"
+	identity2 "github.com/bradleyshawkins/rent/services/user/internal/identity"
 
-	"github.com/bradleyshawkins/rent/cmd/user/identity"
+	"github.com/matryer/is"
 )
 
 type mockUserCreatorService struct {
-	RegisterUserUserRegistration       *identity.User
-	RegisterUserCredentials            *identity.Credentials
+	RegisterUserUserRegistration       *identity2.User
+	RegisterUserCredentials            *identity2.Credentials
 	RegisterUserError                  error
-	RegisterAccountUserID              identity.UserID
-	RegisterAccountAccountRegistration *identity.Account
+	RegisterAccountUserID              identity2.UserID
+	RegisterAccountAccountRegistration *identity2.Account
 	RegisterAccountError               error
-	AddUserToAccountAccountID          identity.AccountID
-	AddUserToAccountUserID             identity.UserID
-	AddUserToAccountRole               identity.Role
+	AddUserToAccountAccountID          identity2.AccountID
+	AddUserToAccountUserID             identity2.UserID
+	AddUserToAccountRole               identity2.Role
 	AddUserToAccountError              error
 }
 
-func (m *mockUserCreatorService) RegisterUser(u *identity.User, c *identity.Credentials) error {
+func (m *mockUserCreatorService) RegisterUser(u *identity2.User, c *identity2.Credentials) error {
 	m.RegisterUserUserRegistration = u
 	m.RegisterUserCredentials = c
 	return m.RegisterUserError
 }
 
-func (m *mockUserCreatorService) RegisterAccount(a *identity.Account) error {
+func (m *mockUserCreatorService) RegisterAccount(a *identity2.Account) error {
 	m.RegisterAccountAccountRegistration = a
 	return m.RegisterAccountError
 }
 
-func (m *mockUserCreatorService) AddUserToAccount(aID identity.AccountID, pID identity.UserID, role identity.Role) error {
+func (m *mockUserCreatorService) AddUserToAccount(aID identity2.AccountID, pID identity2.UserID, role identity2.Role) error {
 	m.AddUserToAccountAccountID = aID
 	m.AddUserToAccountUserID = pID
 	m.AddUserToAccountRole = role
@@ -45,7 +45,7 @@ type mockUserCreator struct {
 	mpcs *mockUserCreatorService
 }
 
-func (m *mockUserCreator) SignUp(suf *identity.SignUpForm) error {
+func (m *mockUserCreator) SignUp(suf *identity2.SignUpForm) error {
 	return suf.SignUp(m.mpcs)
 }
 
@@ -53,7 +53,7 @@ func TestRegisterUser(t *testing.T) {
 	i := is.New(t)
 	mpcs := &mockUserCreatorService{}
 	mpc := &mockUserCreator{mpcs}
-	registrar := identity.NewSignUpManager(mpc)
+	registrar := identity2.NewSignUpManager(mpc)
 	emailAddress, _ := mail.ParseAddress("email.address@test.com")
 	firstName := "First"
 	lastName := "Last"
@@ -104,7 +104,7 @@ func TestRegisterUser_Fail(t *testing.T) {
 			}
 			mpc := &mockUserCreator{mpcs: mpcs}
 
-			registrar := identity.NewSignUpManager(mpc)
+			registrar := identity2.NewSignUpManager(mpc)
 
 			emailAddress, _ := mail.ParseAddress("email.address@test.com")
 

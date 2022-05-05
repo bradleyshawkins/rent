@@ -9,9 +9,9 @@ import (
 	"os"
 	"testing"
 
-	"github.com/bradleyshawkins/rent/cmd/user/identity"
-	"github.com/bradleyshawkins/rent/cmd/user/postgres"
-	"github.com/bradleyshawkins/rent/cmd/user/rest"
+	"github.com/bradleyshawkins/rent/services/user/internal/identity"
+	"github.com/bradleyshawkins/rent/services/user/internal/postgres"
+	"github.com/bradleyshawkins/rent/services/user/internal/rest"
 )
 
 var (

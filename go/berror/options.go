@@ -28,14 +28,6 @@ func WithInternal() Option {
 	}
 }
 
-func WithInvalidFields(invalidFields ...InvalidField) Option {
-	return func(e *Error) {
-		e.code = CodeInvalidField
-		e.userMessage = InvalidFieldMsg
-		e.fields = invalidFields
-	}
-}
-
 func WithDuplicate() Option {
 	return func(e *Error) {
 		e.code = CodeDuplicate

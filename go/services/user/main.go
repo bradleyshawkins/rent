@@ -8,10 +8,11 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/bradleyshawkins/rent/services/user/internal/rest"
+
 	_ "github.com/lib/pq"
 
 	"github.com/bradleyshawkins/rent/berror"
-	"github.com/bradleyshawkins/rent/cmd/user/rest"
 	"github.com/bradleyshawkins/rent/config"
 )
 
@@ -27,16 +28,6 @@ func main() {
 	}()
 
 	ctx := context.TODO()
-
-	//secretManager, err := secretmanager.NewClient(ctx)
-
-	//resp, err := secretManager.AccessSecretVersion(ctx, &secretmanagerpb.AccessSecretVersionRequest{
-	//	Name: "projects/453363636036/secrets/jwt_key/versions/latest",
-	//})
-	//if err != nil {
-	//	log.Println("Unable to get secret. Error:", err)
-	//	os.Exit(1)
-	//}
 
 	conf, err := config.Load[cfg]()
 	if err != nil {

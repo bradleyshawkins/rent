@@ -6,8 +6,9 @@ import (
 	"net/http"
 	"testing"
 
+	rest2 "github.com/bradleyshawkins/rent/services/user/internal/rest"
+
 	"github.com/bradleyshawkins/rent/berror"
-	"github.com/bradleyshawkins/rent/cmd/user/rest"
 	"github.com/bxcodec/faker/v3"
 	"github.com/google/uuid"
 	"github.com/matryer/is"
@@ -16,7 +17,7 @@ import (
 func TestRegisterUserIntegration(t *testing.T) {
 	i := is.New(t)
 
-	user := rest.RegisterUserRequest{
+	user := rest2.RegisterUserRequest{
 		Username:     faker.Username(),
 		EmailAddress: faker.Email(),
 		Password:     faker.Password(),
@@ -36,7 +37,7 @@ func TestRegisterUserIntegration(t *testing.T) {
 
 	i.Equal(resp.StatusCode, http.StatusCreated)
 
-	var rrs rest.RegisterUserResponse
+	var rrs rest2.RegisterUserResponse
 	err = json.NewDecoder(resp.Body).Decode(&rrs)
 	i.NoErr(err)
 
@@ -49,7 +50,7 @@ func TestRegisterUser_EmailAddressExistsIntegration(t *testing.T) {
 
 	email := faker.Email()
 
-	user := rest.RegisterUserRequest{
+	user := rest2.RegisterUserRequest{
 		Username:     faker.Username(),
 		EmailAddress: email,
 		Password:     faker.Password(),
@@ -67,14 +68,14 @@ func TestRegisterUser_EmailAddressExistsIntegration(t *testing.T) {
 	resp, err := httpClient.Do(req)
 	i.NoErr(err)
 
-	var rrs rest.RegisterUserResponse
+	var rrs rest2.RegisterUserResponse
 	err = json.NewDecoder(resp.Body).Decode(&rrs)
 	i.NoErr(err)
 
 	i.True(rrs.UserID != uuid.Nil)
 	i.True(rrs.AccountID != uuid.Nil)
 
-	dupUser := rest.RegisterUserRequest{
+	dupUser := rest2.RegisterUserRequest{
 		Username:     faker.Username(),
 		EmailAddress: email,
 		Password:     faker.Password(),
@@ -94,7 +95,7 @@ func TestRegisterUser_EmailAddressExistsIntegration(t *testing.T) {
 
 	i.Equal(dupResp.StatusCode, http.StatusConflict)
 
-	var restErr *rest.Error
+	var restErr *rest2.Error
 	err = json.NewDecoder(dupResp.Body).Decode(&restErr)
 	i.NoErr(err)
 	t.Log(restErr)
@@ -122,7 +123,7 @@ func TestRegisterUser_MissingInputIntegration(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			i := is.New(t)
-			l := rest.RegisterUserRequest{
+			l := rest2.RegisterUserRequest{
 				Username:     test.username,
 				Password:     test.password,
 				FirstName:    test.firstName,
@@ -142,7 +143,7 @@ func TestRegisterUser_MissingInputIntegration(t *testing.T) {
 
 			i.Equal(resp.StatusCode, http.StatusBadRequest)
 
-			var restErr *rest.Error
+			var restErr *rest2.Error
 			err = json.NewDecoder(resp.Body).Decode(&restErr)
 			i.NoErr(err)
 			t.Log(restErr)

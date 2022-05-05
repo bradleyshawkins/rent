@@ -1,0 +1,5 @@
+package property
+
+func main() {
+
+}

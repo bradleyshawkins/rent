@@ -12,19 +12,6 @@ type Error struct {
 	code        Code
 	message     string
 	userMessage string
-	fields      []InvalidField
-}
-
-type Reason string
-
-const (
-	ReasonMissing = "MISSING"
-	ReasonInvalid = "INVALID"
-)
-
-type InvalidField struct {
-	Field  string
-	Reason Reason
 }
 
 func New(msg string, options ...Option) *Error {
@@ -61,10 +48,6 @@ func (e *Error) Message() string {
 	return e.message
 }
 
-func (e *Error) InvalidFields() []InvalidField {
-	return e.fields
-}
-
 func (e *Error) HttpStatusCode() int {
 	code, ok := codeHttpStatusCodeMap[e.code]
 	if !ok {
@@ -78,10 +61,6 @@ func (e *Error) WriteAsJson(w http.ResponseWriter) {
 	if err != nil {
 		http.Error(w, "unable to write json response", http.StatusInternalServerError)
 	}
-}
-
-func NewInternal(msg string) *Error {
-	return New(msg, WithInternal())
 }
 
 func WrapInternal(err error, msg string) *Error {
