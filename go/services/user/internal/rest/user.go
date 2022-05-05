@@ -57,7 +57,7 @@ func (r *RegisterUserRequest) validate() error {
 	}
 
 	if len(invalidFields) > 0 {
-		return berror.New("invalid fields provided", berror.WithInvalidFields(invalidFields...))
+		return berror.NewInvalidFieldsError("invalid fields provided", invalidFields...)
 	}
 	return nil
 }
@@ -80,13 +80,13 @@ func (s *Server) RegisterUser(w http.ResponseWriter, r *http.Request) error {
 
 	emailAddress, err := mail.ParseAddress(rr.EmailAddress)
 	if err != nil {
-		return berror.Wrap(err, berror.WithInvalidFields(berror.InvalidField{
+		return berror.NewInvalidFieldsError(err.Error(), berror.InvalidField{
 			Field:  "emailAddress",
 			Reason: berror.ReasonInvalid,
-		}))
+		})
 	}
 
-	user, err := s.signUpManager.SignUp(rr.Username, rr.Password, emailAddress, rr.FirstName, rr.LastName)
+	user, err := s.signUpManager.SignUp(r.Context(), rr.Username, rr.Password, emailAddress, rr.FirstName, rr.LastName)
 	if err != nil {
 		return err
 	}

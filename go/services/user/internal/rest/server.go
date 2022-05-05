@@ -5,9 +5,9 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/bradleyshawkins/rent/bauth"
+	"github.com/bradleyshawkins/rent/services/user/internal/identity"
 
-	"github.com/bradleyshawkins/rent/cmd/user/identity"
+	"github.com/bradleyshawkins/rent/bauth"
 
 	"github.com/go-chi/chi"
 )

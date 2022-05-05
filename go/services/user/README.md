@@ -9,7 +9,7 @@ Running the following commands will download, and begin the service
 ```shell
 go get github.com/bradleyshawkins/rent
 make deps.up
-go run cmd/rent/main.go
+go run services/rent/main.go
 ```
 * `go get github.com/bradleyshawkins/rent` Downloads the repository to `$GOPATH/src/github.com/bradleyshawkins/rent`
 * `make deps.up` spins up a postgres image in a docker container
@@ -42,7 +42,7 @@ The Makefile contains operations used to help run the service
 ### Building
 The project can be built by running
 ```shell
-cd cmd/rent/
+cd services/rent/
 go build
 ```
 
