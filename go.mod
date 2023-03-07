@@ -1,7 +1,6 @@
 module github.com/bradleyshawkins/rent
 
-// +heroku goVersion go1.17
-go 1.17
+go 1.20
 
 require (
 	github.com/go-chi/chi v1.5.4
@@ -14,7 +13,17 @@ require (
 
 require (
 	github.com/bxcodec/faker/v3 v3.7.0 // indirect
-	github.com/kr/pretty v0.1.0 // indirect
+	github.com/go-playground/locales v0.14.1 // indirect
+	github.com/go-playground/universal-translator v0.18.1 // indirect
+	github.com/go-playground/validator/v10 v10.11.2 // indirect
+	github.com/jmoiron/sqlx v1.3.5 // indirect
+	github.com/kr/pretty v0.3.0 // indirect
+	github.com/leodido/go-urn v1.2.1 // indirect
 	github.com/pkg/errors v0.8.1 // indirect
-	gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127 // indirect
+	go.uber.org/atomic v1.10.0 // indirect
+	go.uber.org/multierr v1.9.0 // indirect
+	golang.org/x/crypto v0.5.0 // indirect
+	golang.org/x/sys v0.4.0 // indirect
+	golang.org/x/text v0.6.0 // indirect
+	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 )
